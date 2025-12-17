@@ -1,0 +1,292 @@
+﻿@using LiquidDocsSite.State
+@using MudBlazor.StaticInput
+@using MudBlazor
+
+@inherits LayoutComponentBase
+
+@inject AuthenticationStateProvider AuthProvider
+@inject NavigationManager NavigationManager
+@inject UserSession Session
+@inject IApplicationStateManager appState
+
+<style>
+    .menu-item-spaced {
+        margin-right: 24px; /* or any value you prefer */
+    }
+
+        .menu-item-spaced:last-child {
+            margin-right: 0;
+        }
+
+    .menu-items {
+        display: flex;
+        justify-content: space-evenly;
+        flex: 1;
+        align-items: center;
+    }
+
+    .menu-link {
+        color: white !important; /* ensure white font */
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0 12px;
+        font-size: 16px;
+    }
+
+        .menu-link:hover {
+            text-decoration: underline;
+        }
+</style>
+
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<CascadingAuthenticationState>
+    <MudLayout>
+
+        @if (!isAuthenticated)
+        {
+            <MudAppBar Elevation="1">
+
+               @*  <MudToolbar> *@
+
+                    <!-- Horizontal menu items -->
+                    <MudItem Class="menu-items">
+
+                        <MudText Typo="Typo.button">
+
+
+                            <MudLink Href="/" Class="menu-link">
+                                <img src="images/liquiddocslogoImageOnly.png" height="60" width="77">
+                            </MudLink>
+
+
+                        </MudText>
+
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/" Class="menu-link">Home</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/whyarewedifferent" Class="menu-link">Why are we different</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/faqs" Class="menu-link">FAQs</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/about" Class="menu-link">About</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/contactus" Class="menu-link">Contact Us</MudLink>
+                        </MudText>
+                    </MudItem>
+              @*   </MudToolbar> *@
+
+
+               
+
+                <MudSpacer />
+
+                <LayoutActionButtons />
+            </MudAppBar>
+
+        }
+        else
+        {
+            <MudAppBar Elevation="1">
+                             
+                @* <MudToolbar> *@
+
+                    <!-- Horizontal menu items -->
+                    <MudItem Class="menu-items">
+
+                        <MudText Typo="Typo.button">
+
+
+                            <MudLink Href="/" Class="menu-link">
+                                <img src="images/liquiddocslogoImageOnly.png" height="60" width="77">
+                            </MudLink>
+
+
+                        </MudText>
+
+                        <MudText Typo="Typo.button">
+
+
+                            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@DrawerToggle" />
+
+
+                        </MudText>
+
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/test" Class="menu-link">Home</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/why-are-we-different" Class="menu-link">Why are we different</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/faqs" Class="menu-link">FAQs</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/about" Class="menu-link">About</MudLink>
+                        </MudText>
+                        <MudText Typo="Typo.button">
+                            <MudLink Href="/contactus" Class="menu-link">Contact</MudLink>
+                        </MudText>
+                    </MudItem>
+               @*  </MudToolbar> *@
+
+
+
+                <MudSpacer />
+                <MudMenu OffsetY="true">
+                    <ActivatorContent>
+
+                        <MudAvatar Color="Color.Secondary">@userName.Substring(0, 1).ToUpper()</MudAvatar>
+
+                    </ActivatorContent>
+                    <ChildContent>
+                        @* <MudMenuItem Href="Account/Manage">Profile</MudMenuItem> *@
+                        <MudLink Href="Account/Manage" Class="text-black ml-3">Profile</MudLink>
+
+                        <div class="nav-item px-3">
+                            <form action="Account/Logout" method="post">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                <button type="submit" class="nav-link">
+                                    <span Style="background-color: white;" class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                                </button>
+                            </form>
+                        </div>
+                    </ChildContent>
+                </MudMenu>
+            </MudAppBar>
+
+        }
+
+
+        <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+
+            <MudBlazorNavMenu />
+        </MudDrawer>
+        <MudMainContent>
+            <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
+                @Body
+               
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
+</CascadingAuthenticationState>
+
+
+<div id="blazor-error-ui" data-nosnippet>
+    An unhandled error has occurred.
+    <a href="." class="reload">Reload</a>
+    <span class="dismiss">🗙</span>
+</div>
+
+@code {
+
+
+
+
+
+
+
+    private LiquidDocsSite.Data.ApplicationUser user = default!;
+    private string? username;
+    private string? phoneNumber;
+    private LiquidDocsData.Models.UserProfile userProfile;
+    private bool _drawerOpen = false;
+    private bool isAuthenticated = false;
+    private string userName = string.Empty;
+    private string currentUrl = string.Empty;
+
+    private MudTheme AppMudTheme = new MudTheme
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#0d6efd",
+            Secondary = "#6c757d"
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#0d6efd",
+            Secondary = "#6c757d"
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "0.25rem"
+        }
+    };
+
+
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        var user = auth.User;
+
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        isAuthenticated = auth.User.Identity.IsAuthenticated;
+        userName = auth.User.Identity.Name ?? "";
+
+        if (isAuthenticated)
+        {
+            userProfile = await appState.GetUserProfileByUserNameAsync(userName);
+
+
+
+            Session.UserId = userProfile.Id.ToString();
+
+            Session.UserName = userProfile.UserName;
+                       
+            var roles = appState.GetRoles();
+
+            Session.UserRole = roles.FirstOrDefault();
+
+
+            if (!appState.ActiveSessions.ContainsKey(userName)) appState.ActiveSessions.TryAdd(userName, userProfile);
+
+           
+
+        }
+
+
+
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    private void Logout()
+    {
+        // Redirect to logout page or clear token/session
+        NavigationManager.NavigateTo("authentication/logout");
+    }
+
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+
+
