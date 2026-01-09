@@ -40,10 +40,10 @@
         <MudText Class="mb-5" Typo="Typo.body1">Library: <b>@vm.SelectedLibrary.Name</b></MudText>
     }
 
-    @if (vm.SelectedDocumentSet is not null)
+   @*  @if (vm.SelectedDocumentSet is not null)
     {
         <MudText Class="mb-5" Typo="Typo.body1">Document Set: <b>@vm.SelectedDocumentSet.Name</b></MudText>
-    }
+    } *@
    
     <MudGrid>
         <MudItem xs="12" md="8">
@@ -52,15 +52,13 @@
                 </ToolBarContent>
                 <HeaderContent>
                     <MudTh>Name</MudTh>
-                    <MudTh>Description</MudTh>
                     <MudTh>Last Updated</MudTh>
                     <MudTh>Template</MudTh>
-                    <MudTh>Active</MudTh>
+                    <MudTh>Output As</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>@context.Name</MudTd>
-                    <MudTd>@context.Description</MudTd> 
                     <MudTd>@context.UpdatedAt</MudTd>
                      <MudTd>
                              <MudChip OnClick="@(() => EditRecordAsync(context))" T="bool" Color="@((context.UpdatedAt is null) ? Color.Success : Color.Error)">
@@ -76,8 +74,8 @@
                         </MudChip>
                     </MudTd>
                     <MudTd>
-                        <MudChip T="bool" OnClick="@(() => ActiveSelectionAsync(context))" Color="@((context.IsActive) ? Color.Success : Color.Error)">
-                            @(context.IsActive ? "Yes" : "No")
+                        <MudChip T="string")">
+                            @context.OutputType.GetDescription()
                         </MudChip>
                     </MudTd>
                     <MudTd>
@@ -103,34 +101,24 @@
                 <MudForm Model="@vm.EditingRecord" @ref="@formEditRecord" Validation="@docVal" ValidationDelay="0">
                     <div class="d-flex flex-column gap-2">
                             <MudTextField @bind-Value="vm.EditingRecord.Name" Label="Name" Required="true" />
-                            <MudTextField @bind-Value="vm.EditingRecord.Description" Label="Description" Required="true" />
-                            <MudSelect Class="ml-4" T="LiquidDocsData.Enums.DocumentTypes.Types" Style="background-color: white;" Variant="Variant.Outlined" Label="Document Type" @bind-Value="vm.EditingRecord.DocumentType" Dense="true">
+                            <MudSelect Class="ml-4" T="LiquidDocsData.Enums.DocumentTypes.OutputTypes" Style="background-color: white;" Variant="Variant.Outlined" Label="Generate As:" @bind-Value="vm.EditingRecord.OutputType" Dense="true">
+
+                                @foreach (var t in Enum.GetValues<LiquidDocsData.Enums.DocumentTypes.OutputTypes>())
+                                {
+                                    <MudSelectItem Style="background-color: white;" T="LiquidDocsData.Enums.DocumentTypes.OutputTypes" Value="t">@t.GetDescription()</MudSelectItem>
+                                }
+
+                            </MudSelect>
+
+                          @*   <MudSelect Class="ml-4" T="LiquidDocsData.Enums.DocumentTypes.Types" Style="background-color: white;" Variant="Variant.Outlined" Label="Generate As:" @bind-Value="vm.EditingRecord.DocumentType" Dense="true">
 
                                 @foreach (var dt in Enum.GetValues<LiquidDocsData.Enums.DocumentTypes.Types>())
                                 {
                                     <MudSelectItem Style="background-color: white;" T="LiquidDocsData.Enums.DocumentTypes.Types" Value="dt">@dt.GetDescription()</MudSelectItem>
                                 }
 
-                            </MudSelect>
-                            <MudSwitch T="bool" @bind-Value="vm.EditingRecord.IsStateLanguageRequired" Color="Color.Primary" Label="State Language Required" />
-                            <MudSwitch T="bool" @bind-Value="vm.EditingRecord.AreIndividualDocumentsRequired" Color="Color.Primary" Label="Individual Docs Required" /> 
+                            </MudSelect> *@
 
-                            @if (vm.EditingRecord.IsStateLanguageRequired)
-                            {
-                                <MudSelect Class="ml-4" T="LiquidDocsData.Enums.UsStates.UsState" Style="background-color: white;" Variant="Variant.Outlined" Label="Select State" @bind-Value="vm.EditingRecord.State" Dense="true">
-
-                                @foreach (var tr in Enum.GetValues<LiquidDocsData.Enums.UsStates.UsState>())
-                                {
-                                    <MudSelectItem Style="background-color: white;" T="LiquidDocsData.Enums.UsStates.UsState" Value="tr">@tr</MudSelectItem>
-                                }
-
-                                </MudSelect>
-
-                                @* <MudText Typo="Typo.subtitle2">Selected Abbreviation: @vm.EditingRecord.State</MudText> *@
-                            }
-
-                            
-                            <MudSwitch T="bool" @bind-Value="vm.EditingRecord.IsActive" Color="Color.Primary" Label="Active" />
                             <MudStack Row="true" Spacing="2" Class="mt-4">
                                 <MudButton Type="Submit" OnClick="HandleSubmitAsync" Color="Color.Success" Variant="Variant.Filled">
                                     @(vm.SelectedRecord == null ? "Add" : "Save")
@@ -163,13 +151,6 @@
         await vm.InitializeRecordCommand.ExecuteAsync(null);
 
     }
-
-
-    private async Task ActiveSelectionAsync(LiquidDocsData.Models.Document doc)
-    {
-        doc.IsActive = !doc.IsActive;
-    }
-
 
     private async Task HandleSubmitAsync()
     {

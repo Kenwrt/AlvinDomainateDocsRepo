@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OpenXmlPowerTools;
 using System.IO.Compression;
-using System.Linq;
 using System.Xml.Linq;
 
 //using Xceed.Words.NET;
@@ -177,8 +176,6 @@ public class WordServices : IWordServices
 
     //    return pdfStream;
     //}
-
-
 
     //private void GenerateFooterPartContent(FooterPart footerPart)
     //{
@@ -446,7 +443,6 @@ public class WordServices : IWordServices
         return tagValue ?? string.Empty;
     }
 
-
     private DocumentFormat.OpenXml.Drawing.Paragraph MarkerParagraph(string text, bool hidden)
     {
         var rPr = new RunProperties();
@@ -469,7 +465,6 @@ public class WordServices : IWordServices
 
         return new DocumentFormat.OpenXml.Drawing.Paragraph(r);
     }
-
 
     public void CheckForDuplicateZipEntries(byte[] docxBytes)
     {
@@ -601,7 +596,6 @@ public class WordServices : IWordServices
 
     public async Task<MemoryStream> ConvertWordToPdfAsync(MemoryStream wordStream, CancellationToken cancellationToken = default)
     {
-
         if (wordStream == null)
             throw new ArgumentNullException(nameof(wordStream));
 
@@ -611,7 +605,6 @@ public class WordServices : IWordServices
         var pdfStream = new MemoryStream();
 
         // GemBox is synchronous; wrap in Task.Run so you can keep async flows.
-
 
         // Load DOCX from stream
         var document = DocumentModel.Load(wordStream);
@@ -624,5 +617,4 @@ public class WordServices : IWordServices
 
         return pdfStream;
     }
-
 }

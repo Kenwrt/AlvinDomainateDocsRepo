@@ -1,7 +1,4 @@
-﻿
-
-
-using FluentValidation;
+﻿using FluentValidation;
 using LiquidDocsData.Models;
 
 namespace LiquidDocsData.FluentValidation;
@@ -41,8 +38,6 @@ public class QuickLoanAgreementValidator : AbstractValidator<LoanAgreement>
 
         RuleFor(x => x.TermInMonths)
             .GreaterThanOrEqualTo(0).WithMessage("Term In Months is required");
-
-       
 
         RuleFor(x => x.PrepaymentFee)
             .GreaterThanOrEqualTo(0).WithMessage("Prepayment Fee is required");

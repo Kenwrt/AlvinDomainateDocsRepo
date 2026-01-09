@@ -1,6 +1,4 @@
 ﻿using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
-using DocumentManager.MergeMappings;
 using DocumentManager.State;
 using LiquidDocsData.Enums;
 using LiquidDocsData.Models;
@@ -8,9 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using OpenXmlPowerTools;
-using RazorLight;
 using System.Text;
 
 namespace DocumentManager.Services;
@@ -25,27 +21,143 @@ public class DocumentMergeBackgroundService : BackgroundService, IDocumentMergeB
 
     private IRazorLiteService razorLiteService;
 
+    private IWordServices wordServices;
+
     private readonly IDocumentManagerState docState;
 
     private SemaphoreSlim docSemaphoreSlim = null;
 
-    public event EventHandler<DocumentMerge> OnDocCompletedEvent;
+    public event EventHandler<DocumentMerge>? OnDocumentMergeCompletedEvent;
 
-    public event EventHandler<DocumentMerge> OnDocErrorEvent;
+    public event EventHandler<DocumentMerge>? OnDocumentMergeErrorEvent;
 
-    public DocumentMergeBackgroundService(ILogger<DocumentMergeBackgroundService> logger, IOptions<DocumentManagerConfigOptions> options, IDocumentManagerState docState, IWebHostEnvironment webEnv, IRazorLiteService razorLiteService)
+    public DocumentMergeBackgroundService(ILogger<DocumentMergeBackgroundService> logger, IOptions<DocumentManagerConfigOptions> options, IDocumentManagerState docState, IWebHostEnvironment webEnv, IRazorLiteService razorLiteService, IWordServices wordServices)
     {
         this.logger = logger;
         this.options = options;
         this.docState = docState;
         this.webEnv = webEnv;
         this.razorLiteService = razorLiteService;
+        this.wordServices = wordServices;
 
         docSemaphoreSlim = new(options.Value.MaxDocumentMergeThreads);
 
         docState.IsRunBackgroundDocumentMergeServiceChanged += OnIsRunDocumentBackgroundServiceChanged;
     }
 
+    private async Task MergeDocumentAsync(DocumentMerge documentMerge, CancellationToken stoppingToken)
+    {
+        try
+        {
+            await docSemaphoreSlim.WaitAsync();
+
+            docState.DocumentList.TryAdd(documentMerge.Id, documentMerge);
+
+            byte[] mergedDocBytes;
+
+            using var ms = new MemoryStream(capacity: documentMerge.Document.TemplateDocumentBytes.Length + 4096); // give it some headroom
+
+            ms.Write(documentMerge.Document.TemplateDocumentBytes, 0, documentMerge.Document.TemplateDocumentBytes.Length);
+
+            ms.Position = 0;
+
+            //Process the document with RazorLite
+            MemoryStream msResult = await razorLiteService.ProcessAsync(ms, documentMerge.LoanAgreement);
+
+            if (msResult is not null)
+            {
+                if (documentMerge.Document.OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.DOCX)
+                {
+                    //no need to convert already in word format
+
+                    msResult.Position = 0;
+                    documentMerge.Document.Name = $"{documentMerge.Document.Name}.docm";
+                }
+                else
+                {
+                    MemoryStream pdfStream = await wordServices.ConvertWordToPdfAsync(msResult);
+
+                    pdfStream.Position = 0;
+
+                    documentMerge.MergedDocumentBytes = pdfStream.ToArray();
+                    documentMerge.Document.Name = $"{documentMerge.Document.Name}.pdf";
+
+                    //Convert to PDF
+
+                    //var pdfPath = Path.Combine(dir, $"{DisplayHelper.CapitalizeWordsNoSpaces(doc.Name)}-TestMerge.pdf");
+                    //await File.WriteAllBytesAsync(pdfPath, pdfStream.ToArray());
+                }
+
+                documentMerge.Status = DocumentMergeState.Status.Complete;
+            }
+            else
+            {
+                documentMerge.MergedDocumentBytes = null;
+                documentMerge.Status = DocumentMergeState.Status.Error;
+            }
+
+            OnDocumentMergeCompletedEvent?.Invoke(this, documentMerge);
+
+            docState.StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"Error processing document {documentMerge.Id}: {ex.Message}");
+
+            OnDocumentMergeErrorEvent?.Invoke(this, documentMerge);
+            docState.DocumentList.TryRemove(documentMerge.Id, out documentMerge);
+            throw;
+        }
+        finally
+        {
+            docSemaphoreSlim?.Release();
+        }
+    }
+
+    private static string GetDocumentText(WordprocessingDocument doc)
+    {
+        using var reader = new StreamReader(doc.MainDocumentPart.GetStream());
+        return reader.ReadToEnd();
+    }
+
+    private static void SetDocumentText(WordprocessingDocument doc, string text)
+    {
+        using var writer = new StreamWriter(doc.MainDocumentPart.GetStream(FileMode.Create));
+        writer.Write(text);
+    }
+
+    private async Task<string> GetHtmlFromWordDoc(string wordFilePath)
+    {
+        System.Xml.Linq.XElement html = null;
+        string htmlString = string.Empty;
+        string htmlOutputPath = System.IO.Path.Combine("Content", "LenderClosingInstructions.mht");
+
+        try
+        {
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(wordFilePath, false))
+            {
+                OpenXmlPowerTools.HtmlConverterSettings settings = new OpenXmlPowerTools.HtmlConverterSettings()
+                {
+                    PageTitle = "Converted from Word"
+                };
+
+                html = OpenXmlPowerTools.HtmlConverter.ConvertToHtml(wordDoc, settings);
+
+                // Save the HTML output
+                File.WriteAllText(htmlOutputPath, html.ToStringNewLineOnAttributes(), Encoding.UTF8);
+
+                Console.WriteLine($"HTML file generated: {htmlOutputPath}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error during conversion: " + ex.Message);
+        }
+
+        return html.ToStringNewLineOnAttributes();
+    }
+
+    // Background Service Maintenance Area
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -101,149 +213,26 @@ public class DocumentMergeBackgroundService : BackgroundService, IDocumentMergeB
         }
     }
 
-    public async Task MergeDocumentAsync(DocumentMerge documentMerge, CancellationToken stoppingToken)
-    {
-        DocumentMerge documentState = null;
-
-        try
-        {
-            await docSemaphoreSlim.WaitAsync();
-
-            docState.DocumentList.TryAdd(documentMerge.Id, documentMerge);
-
-            byte[] mergedDocBytes;
-
-
-            using var ms = new MemoryStream(capacity: documentMerge.Document.TemplateDocumentBytes.Length + 4096); // give it some headroom
-
-            ms.Write(documentMerge.Document.TemplateDocumentBytes, 0, documentMerge.Document.TemplateDocumentBytes.Length);
-
-            ms.Position = 0;
-
-
-            //Process the document with RazorLite
-            MemoryStream msResult = await razorLiteService.ProcessAsync(ms, documentMerge.LoanAgreement);
-
-            if (msResult is not null)
-            {
-                documentMerge.MergedDocumentBytes = msResult.ToArray();
-
-                OnDocCompletedEvent?.Invoke(this, documentMerge);
-
-                //if (File.Exists(targetPath))
-                //{
-                //    File.Delete(targetPath);
-                //}
-
-                //using (var fileStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write))
-                //{
-                //    msResult.Position = 0; // rewind, always
-                //    msResult.CopyTo(fileStream);
-                //}
-
-
-            }
-            else
-            {
-                documentMerge.MergedDocumentBytes = null;
-                documentMerge.Status = DocumentMergeState.Status.Error;
-
-                OnDocErrorEvent?.Invoke(this, documentMerge);
-            }
-
-
-
-            docState.StateHasChanged();
-
-            // OnDocCompletedEvent?.Invoke(this, document);
-        }
-        catch (Exception ex)
-        {
-            //logger.LogError(ex, $"Error processing document {document.Id}: {ex.Message}");
-
-            //OnDocErrorEvent?.Invoke(this, document);
-            //docState.DocumentList.TryRemove(document.Id, out documentState);
-            throw;
-        }
-        finally
-        {
-            docSemaphoreSlim?.Release();
-        }
-    }
-
-
-
-
-    private static string GetDocumentText(WordprocessingDocument doc)
-    {
-        using var reader = new StreamReader(doc.MainDocumentPart.GetStream());
-        return reader.ReadToEnd();
-    }
-
-    private static void SetDocumentText(WordprocessingDocument doc, string text)
-    {
-        using var writer = new StreamWriter(doc.MainDocumentPart.GetStream(FileMode.Create));
-        writer.Write(text);
-    }
-
-    private async Task<string> GetHtmlFromWordDoc(string wordFilePath)
-    {
-        System.Xml.Linq.XElement html = null;
-        string htmlString = string.Empty;
-        string htmlOutputPath = System.IO.Path.Combine("Content", "LenderClosingInstructions.mht");
-
-        try
-        {
-            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(wordFilePath, false))
-            {
-                OpenXmlPowerTools.HtmlConverterSettings settings = new OpenXmlPowerTools.HtmlConverterSettings()
-                {
-                    PageTitle = "Converted from Word"
-                };
-
-                html = OpenXmlPowerTools.HtmlConverter.ConvertToHtml(wordDoc, settings);
-
-                // Save the HTML output
-                File.WriteAllText(htmlOutputPath, html.ToStringNewLineOnAttributes(), Encoding.UTF8);
-
-                Console.WriteLine($"HTML file generated: {htmlOutputPath}");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error during conversion: " + ex.Message);
-        }
-
-        return html.ToStringNewLineOnAttributes();
-    }
-
     public override async Task StartAsync(CancellationToken cancellationToken)
     {
         await base.StartAsync(cancellationToken);
 
-        await DoSomeInitializationAsync();
-
-        await DoSomeRecoveryAsync();
+        await DoRecoveryAsync();
     }
 
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         await base.StopAsync(cancellationToken);
 
-        await DoSomeCleanupAsync();
+        await DoCleanupAsync();
     }
 
-    public async Task DoSomeInitializationAsync()
-    {
-        logger.LogDebug($"Document Merge Processing Background Service Initialization");
-    }
-
-    public async Task DoSomeRecoveryAsync()
+    private async Task DoRecoveryAsync()
     {
         logger.LogDebug($"Document Merge Processing Background Service Recovering Tranactions");
     }
 
-    public async Task DoSomeCleanupAsync()
+    private async Task DoCleanupAsync()
     {
         logger.LogDebug($"Document Merge Processing Background Service Performing Cleanup tasks");
     }
@@ -252,19 +241,17 @@ public class DocumentMergeBackgroundService : BackgroundService, IDocumentMergeB
     {
         if (docState.IsRunBackgroundDocumentMergeService)
         {
-            DoSomeInitializationAsync();
-
-            DoSomeRecoveryAsync();
+            DoRecoveryAsync();
         }
         else
         {
-            DoSomeCleanupAsync();
+            DoCleanupAsync();
         }
     }
 }
 
-public class TextReplacement
-{
-    public string Search { get; set; }
-    public string Replace { get; set; }
-}
+//public class TextReplacement
+//{
+//    public string Search { get; set; }
+//    public string Replace { get; set; }
+//}

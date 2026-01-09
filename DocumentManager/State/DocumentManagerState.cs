@@ -74,11 +74,11 @@ public class DocumentManagerState : IDocumentManagerState
 
     public event EventHandler StateChanged;
 
-    public event EventHandler<bool> IsRunBackgroundDocumentMergeServiceChanged;
+    public event EventHandler<bool>? IsRunBackgroundDocumentMergeServiceChanged;
 
-    public event EventHandler<bool> IsRunBackgroundLoanApplicationServiceChanged;
+    public event EventHandler<bool>? IsRunBackgroundLoanApplicationServiceChanged;
 
-    public event EventHandler<bool> IsRunBackgroundHousekeeperServiceChanged;
+    public event EventHandler<bool>? IsRunBackgroundHousekeeperServiceChanged;
 
     public DocumentManagerState(IOptions<DocumentManagerConfigOptions> config)
     {
@@ -94,17 +94,17 @@ public class DocumentManagerState : IDocumentManagerState
         StateHasChanged();
     }
 
-    public void IsHousekeeperActiveHasChanged(bool val)
+    public async Task IsHousekeeperActiveHasChanged(bool val)
     {
         IsRunBackgroundHousekeeperServiceChanged?.Invoke(this, val);
     }
 
-    public void IsRunBackgroundDocumentMergeServiceHasChanged(bool val)
+    public async Task IsRunBackgroundDocumentMergeServiceHasChanged(bool val)
     {
         IsRunBackgroundDocumentMergeServiceChanged?.Invoke(this, val);
     }
 
-    public void IsRunBackgroundLoanApplicationServiceHasChanged(bool val)
+    public async Task IsRunBackgroundLoanApplicationServiceHasChanged(bool val)
     {
         IsRunBackgroundLoanApplicationServiceChanged?.Invoke(this, val);
     }

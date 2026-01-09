@@ -1,8 +1,4 @@
 using LiquidDocsData.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace LiquidDocsSite.Database;
 
@@ -20,6 +16,6 @@ public class DocumentLibraryRepository : BaseRepository<DocumentLibrary>, IDocum
     public async Task<IEnumerable<DocumentLibrary>> GetForLoanAsync(Guid loanApplicationId)
     {
         var all = await Db.GetRecordsAsync<DocumentLibrary>();
-        return all.Where(x => x.LoanApplicationId == loanApplicationId);
+        return all;
     }
 }

@@ -4,6 +4,7 @@ namespace LiquidDocsSite.Database;
 public interface IMongoDatabaseRepo
 {
     void DeleteRecord<T>(T record) where T : class;
+    void DeleteRecordById<T>(Guid id) where T : class;
     void DropCollection<T>(T record) where T : class;
     Task DropCollectionAsync<T>();
     T GetRecordById<T>(Guid id) where T : class;

@@ -6,8 +6,7 @@ namespace DocumentManager.CalculatorsSchedulers;
 
 public class BalloonPaymentCalculater : IBalloonPaymentCalculater
 {
-
-    ILogger<BalloonPaymentCalculater> logger;
+    private ILogger<BalloonPaymentCalculater> logger;
 
     public BalloonPaymentCalculater(ILogger<BalloonPaymentCalculater> logger)
     {
@@ -19,7 +18,7 @@ public class BalloonPaymentCalculater : IBalloonPaymentCalculater
     /// - Scheduled payment is computed from AmortizationTermMonths.
     /// - Schedule runs to BalloonTermMonths, then adds a balloon payoff row.
     /// </summary>
-    /// 
+    ///
 
     public BalloonPayments Generate(decimal principal, decimal annualRatePercent, int amortizationTermMonths, int balloonTermMonths, DateTime firstPaymentDate, int paymentsPerYear = 12)
     {
@@ -31,7 +30,6 @@ public class BalloonPaymentCalculater : IBalloonPaymentCalculater
 
         try
         {
-
             if (principal <= 0) throw new ArgumentOutOfRangeException(nameof(principal));
             if (annualRatePercent < 0) throw new ArgumentOutOfRangeException(nameof(annualRatePercent));
             if (amortizationTermMonths <= 0) throw new ArgumentOutOfRangeException(nameof(amortizationTermMonths));
@@ -97,7 +95,6 @@ public class BalloonPaymentCalculater : IBalloonPaymentCalculater
             }
 
             regulars = rows.Where(x => !x.IsBalloon).ToList();
-
         }
         catch (Exception ex)
         {
@@ -114,9 +111,7 @@ public class BalloonPaymentCalculater : IBalloonPaymentCalculater
             ScheduledPayment = scheduledPayment,
             BalloonAmount = balloonAmount,
             PaymentPeriods = rows,
-
         };
-
     }
 
     private decimal Round(decimal v) => Math.Round(v, 2, MidpointRounding.AwayFromZero);
@@ -134,7 +129,6 @@ public class BalloonPaymentCalculater : IBalloonPaymentCalculater
             {
                 var dim = DateTime.DaysInMonth(target.Year, target.Month);
                 return new DateTime(target.Year, target.Month, Math.Min(date.Day, dim));
-
             }
         }
         catch (Exception ex)
@@ -144,7 +138,4 @@ public class BalloonPaymentCalculater : IBalloonPaymentCalculater
 
         return target;
     }
-
-
-
 }

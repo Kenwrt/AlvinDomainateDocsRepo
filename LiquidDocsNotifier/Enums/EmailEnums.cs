@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LiquidDocsNotify.Enums;
-
+﻿namespace LiquidDocsNotify.Enums;
 
 public class EmailEnums
 {
@@ -31,7 +24,7 @@ public class EmailEnums
 
         [System.ComponentModel.Description("MergeTest")]
         MergeTest = 42470074,
-         
+
         [System.ComponentModel.Description("Other")]
         Other
     }
@@ -62,5 +55,4 @@ public class EmailEnums
         [System.ComponentModel.Description("Inbound")]
         Inbound
     }
-
 }

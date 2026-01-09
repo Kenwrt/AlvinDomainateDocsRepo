@@ -1,10 +1,8 @@
-﻿
-using FluentValidation;
+﻿using FluentValidation;
 using LiquidDocsData.Enums;
 using LiquidDocsData.Models;
 
 namespace LiquidDocsData.FluentValidation;
-
 
 public class QuickBrokerValidator : AbstractValidator<Broker>
 {

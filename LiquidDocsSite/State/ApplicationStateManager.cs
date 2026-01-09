@@ -31,7 +31,6 @@ public class ApplicationStateManager : IApplicationStateManager
 
     public async Task<UserProfile> GetUserProfileByUserNameAsync(string userName)
     {
-        
         UserProfile userProfile = null;
 
         try

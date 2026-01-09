@@ -1,9 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LiquidDocsData.Enums;
-using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
-using LiquidDocsSite.State;
 using System.Collections.ObjectModel;
 
 namespace LiquidDocsSite.ViewModels;
@@ -19,15 +16,11 @@ public partial class EntityOwnerViewModel : ObservableObject
     [ObservableProperty]
     private LiquidDocsData.Models.EntityOwner selectedRecord = null;
 
-   
     private readonly ILogger<EntityOwnerViewModel> logger;
 
     public EntityOwnerViewModel(ILogger<EntityOwnerViewModel> logger)
     {
-
         this.logger = logger;
-
-       
     }
 
     [RelayCommand]
@@ -43,48 +36,34 @@ public partial class EntityOwnerViewModel : ObservableObject
             MyRecordList.Clear();
             MyRecordList = entityOwnerList.ToObservableCollection();
         }
-
-       
     }
-
 
     [RelayCommand]
     private async Task UpsertRecord()
     {
-
         //Update All Collections
 
         int recordListIndex = MyRecordList.FindIndex(x => x.Id == EditingRecord.Id);
 
         if (recordListIndex > -1)
         {
-
             MyRecordList[recordListIndex] = EditingRecord;
-
         }
         else
         {
             MyRecordList.Add(EditingRecord);
         }
-
-
     }
-
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.EntityOwner r)
     {
-
         int recordListIndex = MyRecordList.FindIndex(x => x.Id == r.Id);
 
         if (recordListIndex > -1)
         {
-
             MyRecordList.RemoveAt(recordListIndex);
-
         }
-
-
     }
 
     [RelayCommand]
@@ -111,7 +90,5 @@ public partial class EntityOwnerViewModel : ObservableObject
     private void GetNewRecord()
     {
         EditingRecord = new LiquidDocsData.Models.EntityOwner();
-        
-
     }
 }

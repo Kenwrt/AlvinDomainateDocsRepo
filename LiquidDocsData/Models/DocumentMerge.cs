@@ -29,5 +29,4 @@ public class DocumentMerge
     public DateTime? MergeCompleteAt { get; set; }
 
     public DocumentMergeState.Status Status { get; set; } = DocumentMergeState.Status.Pending;
-
 }

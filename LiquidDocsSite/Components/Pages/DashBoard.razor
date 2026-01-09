@@ -25,6 +25,10 @@
                    FullWidth="true"
                    Variant="Variant.Filled"
                    OnClick="OnCreateQuickLoan">+ New Loan</MudButton>
+
+        <MudButton Class=""
+                    Variant="Variant.Text"
+                   OnClick="OnCreateQuickLoanOld">+ New Loan(old UI)</MudButton>
     </MudItem>
 
     <MudItem xs="12" sm="6" md="3">
@@ -48,7 +52,13 @@
                     <MudText Typo="Typo.h6">Avg. Interest Rate</MudText>
                     <MudIcon Icon="@Icons.Material.Filled.Moving" Class="text-white" />
                 </div>
-                <MudText Class="ml-3" Typo="Typo.h3">@lvm.AverageInterestRate%</MudText>
+                <MudText Class="ml-3" Typo="Typo.h3">
+                    @{
+                        var raw = (lvm.AverageInterestRate ?? "").Trim().Replace("%", "");
+                        var ok = decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate);
+                    }
+                    @(ok && rate > 0m ? $"{rate:0.##}%" : "")
+                </MudText >
             </MudCardContent>
         </MudCard>
     </MudItem>
@@ -175,6 +185,13 @@
     }
 
     private void OnCreateQuickLoan()
+    {
+        lvm.SelectedAgreement = new();
+        lvm.SelectedAgreement.UserId = Guid.Parse(Session.UserId);
+        Nav.NavigateTo("/quickloanagreementnewlook");
+    }
+
+    private void OnCreateQuickLoanOld()
     {
         lvm.SelectedAgreement = new();
         lvm.SelectedAgreement.UserId = Guid.Parse(Session.UserId);

@@ -1,16 +1,6 @@
-﻿using DnsClient.Internal;
-using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Logging;
 using System.Globalization;
-using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-using static LiquidDocsData.Enums.Entity;
 
 namespace DocumentManager.Services;
 
@@ -24,7 +14,7 @@ public class FetchCurrentIndexRatesAndSchedulesService : IFetchCurrentIndexRates
     private readonly HttpClient http;
     private ILogger<FetchCurrentIndexRatesAndSchedulesService> logger;
 
-    LoanTerms sampleTerms;
+    private LoanTerms sampleTerms;
 
     public FetchCurrentIndexRatesAndSchedulesService(HttpClient httpClient, ILogger<FetchCurrentIndexRatesAndSchedulesService> logger)
     {
@@ -54,8 +44,6 @@ public class FetchCurrentIndexRatesAndSchedulesService : IFetchCurrentIndexRates
             }
         };
     }
-
-    #region ===== Index Fetching =====
 
     /// <summary>
     /// Gets the latest published SOFR (percent per annum) from the NY Fed public API.
@@ -134,10 +122,6 @@ public class FetchCurrentIndexRatesAndSchedulesService : IFetchCurrentIndexRates
         public string? value { get; set; }
     }
 
-    #endregion
-
-    #region ===== Schedule Generation =====
-
     public enum PaymentStructure
     {
         InterestOnly,
@@ -207,6 +191,7 @@ public class FetchCurrentIndexRatesAndSchedulesService : IFetchCurrentIndexRates
 
         /// <summary> If RateMode == Variable, set IndexName, MarginPercent, AdjustmentIntervalMonths, Projection, Caps (optional). </summary>
         public string? IndexName { get; set; }
+
         public decimal MarginPercent { get; set; } = 0m;
         public int AdjustmentIntervalMonths { get; set; } = 12;
         public IndexProjection? Projection { get; set; }
@@ -276,8 +261,6 @@ public class FetchCurrentIndexRatesAndSchedulesService : IFetchCurrentIndexRates
             BasisPointsPerReset = terms.Projection?.BasisPointsPerReset ?? 25m,
             ExplicitResetCurvePercents = terms.Projection?.ExplicitResetCurvePercents
         };
-
-        
 
         // Determine starting fully-indexed rate
         decimal startRatePct = terms.RateMode == RateMode.Fixed
@@ -385,7 +368,6 @@ public class FetchCurrentIndexRatesAndSchedulesService : IFetchCurrentIndexRates
         };
     }
 
-
     private static decimal ComputeAmortizingPayment(decimal principal, decimal monthlyRate, int nMonths)
     {
         if (principal <= 0m) return 0m;
@@ -449,7 +431,4 @@ public class FetchCurrentIndexRatesAndSchedulesService : IFetchCurrentIndexRates
     }
 
     private static decimal Clamp(decimal x, decimal min, decimal max) => x < min ? min : (x > max ? max : x);
-
-    #endregion
 }
-

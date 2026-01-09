@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -28,7 +27,6 @@ public partial class QuickLenderViewModel : ObservableObject
     private IApplicationStateManager appState;
     private readonly IMongoDatabaseRepo dbApp;
     private readonly ILogger<QuickLenderViewModel> logger;
-   
 
     public QuickLenderViewModel(IMongoDatabaseRepo dbApp, ILogger<QuickLenderViewModel> logger, UserSession userSession, IApplicationStateManager appState)
     {
@@ -38,7 +36,6 @@ public partial class QuickLenderViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-
     }
 
     [RelayCommand]
@@ -49,8 +46,6 @@ public partial class QuickLenderViewModel : ObservableObject
         RecordList.Clear();
 
         dbApp.GetRecords<LiquidDocsData.Models.Lender>().ToList().ForEach(lf => RecordList.Add(lf));
-
-        
     }
 
     [RelayCommand]
@@ -67,9 +62,7 @@ public partial class QuickLenderViewModel : ObservableObject
 
         if (recordListIndex > -1)
         {
-
             RecordList[recordListIndex] = EditingRecord;
-
         }
         else
         {
@@ -80,9 +73,7 @@ public partial class QuickLenderViewModel : ObservableObject
 
         if (myLenderIndex > -1)
         {
-
             MyLenderList[myLenderIndex] = EditingRecord;
-
         }
         else
         {
@@ -90,25 +81,17 @@ public partial class QuickLenderViewModel : ObservableObject
         }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.Lender>(EditingRecord);
-
-
-
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.Lender r)
     {
-
         int myLenderIndex = MyLenderList.FindIndex(x => x.Id == r.Id);
 
         if (myLenderIndex > -1)
         {
-
             MyLenderList.RemoveAt(myLenderIndex);
-
         }
-      
-        
     }
 
     [RelayCommand]
@@ -138,6 +121,5 @@ public partial class QuickLenderViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-
     }
 }

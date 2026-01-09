@@ -27,10 +27,8 @@ public static class ObservableCollectionExtensions
 
     public static ObservableCollection<T> ToObservableCollection<T>(this IEnumerable<T> source)
     {
-
         if (source is null) return null;
-                
-        return new ObservableCollection<T>(source);
 
+        return new ObservableCollection<T>(source);
     }
 }

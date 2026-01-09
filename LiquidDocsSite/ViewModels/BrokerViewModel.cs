@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -36,6 +35,7 @@ public partial class BrokerViewModel : ObservableObject
     private readonly UserSession userSession;
     private readonly ILogger<BrokerViewModel> logger;
     private IApplicationStateManager appState;
+    private static readonly Random rng = Random.Shared;
 
     public BrokerViewModel(IMongoDatabaseRepo dbApp, ILogger<BrokerViewModel> logger, UserSession userSession, IApplicationStateManager appState)
     {
@@ -45,23 +45,17 @@ public partial class BrokerViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-
-                     
-       
     }
 
     [RelayCommand]
     private async Task InitializePage()
     {
-        if (EditingRecord is null) GetNewRecord();  
+        if (EditingRecord is null) GetNewRecord();
 
         RecordList.Clear();
 
         dbApp.GetRecords<LiquidDocsData.Models.Broker>().ToList().ForEach(lf => RecordList.Add(lf));
-           
     }
-
-    
 
     [RelayCommand]
     private async Task UpsertRecord()
@@ -75,42 +69,32 @@ public partial class BrokerViewModel : ObservableObject
 
         if (index > -1)
         {
-
             RecordList[index] = EditingRecord;
-
         }
         else
         {
             RecordList.Add(EditingRecord);
-        }   
+        }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.Broker>(EditingRecord);
-
-      
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.Broker r)
     {
-
         int myBrokerIndex = RecordList.FindIndex(x => x.Id == r.Id);
 
         if (myBrokerIndex > -1)
         {
-
             RecordList.RemoveAt(myBrokerIndex);
-
         }
 
-
         dbApp.DeleteRecord<LiquidDocsData.Models.Broker>(r);
-
     }
 
     [RelayCommand]
     private void SelectRecord(LiquidDocsData.Models.Broker r)
     {
-
         if (r != null)
         {
             SelectedRecord = r;
@@ -128,14 +112,18 @@ public partial class BrokerViewModel : ObservableObject
         }
     }
 
+    public int GenerateLenderCode()
+    {
+        return rng.Next(10000, 100000); // upper bound is exclusive
+    }
+
     [RelayCommand]
     private void GetNewRecord()
     {
         EditingRecord = new LiquidDocsData.Models.Broker()
         {
-            UserId = Guid.Parse(userId)
+            UserId = Guid.Parse(userId),
+            BrokerCode = GenerateLenderCode()
         };
-
-       
     }
 }

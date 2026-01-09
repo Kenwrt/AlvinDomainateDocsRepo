@@ -18,7 +18,7 @@ public class LoanAgreementDTO
 
     public string LoanNumber { get; set; }
 
-    public DocumentSet DocumentSet { get; set; }
+    //  public DocumentSet DocumentSet { get; set; }
 
     public decimal PrincipalAmount { get; set; }
 

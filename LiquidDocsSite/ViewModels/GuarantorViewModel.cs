@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -41,8 +40,6 @@ public partial class GuarantorViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-
-        
     }
 
     [RelayCommand]
@@ -60,11 +57,8 @@ public partial class GuarantorViewModel : ObservableObject
 
             MyGuarantorList = guarantorList.ToObservableCollection();
         }
-
-       
     }
 
-    
     [RelayCommand]
     private async Task UpsertRecord()
     {
@@ -73,14 +67,11 @@ public partial class GuarantorViewModel : ObservableObject
             EditingRecord.EntityName = EditingRecord.ContactName;
         }
 
-
         int index = RecordList.FindIndex(x => x.Id == EditingRecord.Id);
 
         if (index > -1)
         {
-
             RecordList[index] = EditingRecord;
-
         }
         else
         {
@@ -91,9 +82,7 @@ public partial class GuarantorViewModel : ObservableObject
 
         if (index > -1)
         {
-
             MyGuarantorList[index] = EditingRecord;
-
         }
         else
         {
@@ -101,8 +90,6 @@ public partial class GuarantorViewModel : ObservableObject
         }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.Guarantor>(EditingRecord);
-
-     
     }
 
     [RelayCommand]
@@ -112,13 +99,10 @@ public partial class GuarantorViewModel : ObservableObject
 
         if (myGuarantorIndex > -1)
         {
-
             RecordList.RemoveAt(myGuarantorIndex);
-
         }
 
         dbApp.DeleteRecord<LiquidDocsData.Models.Guarantor>(r);
-
     }
 
     [RelayCommand]
@@ -148,6 +132,5 @@ public partial class GuarantorViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-
     }
 }

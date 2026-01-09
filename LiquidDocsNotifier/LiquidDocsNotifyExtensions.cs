@@ -35,7 +35,6 @@ public static class LiquidDocsNotifyExtensions
             services.TryAddSingleton<IEmailBackgroundService, EmailBackgroundService>();
             services.TryAddSingleton<ITextBackgroundService, TextBackgroundService>();
 
-           
             services.Configure<HostOptions>(x =>
             {
                 x.ServicesStartConcurrently = true;

@@ -1,6 +1,5 @@
+using LiquidDocsData.Models.Storage;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace LiquidDocsData.Models;
@@ -12,12 +11,7 @@ public class DocumentLibrary
     [BsonId]
     [Required]
     public Guid Id { get; set; } = Guid.NewGuid();
-
-    [Required]
-    public Guid LoanApplicationId { get; set; }
-
-    public Guid UserId { get; set; }
-
+  
     public string Name { get; set; }
 
     public String Description { get; set; }
@@ -26,11 +20,26 @@ public class DocumentLibrary
 
     public string MasterTemplate { get; set; } = "Master Default Template";
 
-    public byte[] MasterTemplateBytes { get; set; }
+    public BlobRef? MasterTemplateRef { get; set; }
 
-    public List<LiquidDocsData.Models.Document> Documents { get; set; } = new();
+    public byte[] MasterTemplateBytes { get; set; } // will move this to Azure at a later date
+
+    public List<Guid> DocumentIds { get; set; } = new();
+
+    public List<Document> Documents { get; set; } = new(); // will delete after migration
 
     public DateTime? UpdatedAt { get; set; }
 
     public bool IsActive { get; set; } = true;
+
+    [BsonIgnore]
+    public bool HasMasterTemplate => MasterTemplateRef is not null && !MasterTemplateRef.IsEmpty;
 }
+
+
+    
+
+  
+
+  
+

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LiquidDocsData.Models;
+﻿namespace LiquidDocsData.Models;
 
 public sealed class LoanScheduleResult
 {
@@ -25,4 +19,3 @@ public sealed class LoanTotals
     public decimal TotalInterestBeforeBalloon { get; init; }
     public decimal TotalPaidIncludingBalloon { get; init; }
 }
-

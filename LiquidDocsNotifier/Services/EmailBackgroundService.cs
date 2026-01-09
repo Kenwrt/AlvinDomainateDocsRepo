@@ -1,8 +1,6 @@
 ﻿using FluentEmail.Core;
-using FluentEmail.Core.Models;
 using FluentEmail.Razor;
 using FluentEmail.Smtp;
-using LiquidDocsNotify.Enums;
 using LiquidDocsNotify.Models;
 using LiquidDocsNotify.State;
 using Microsoft.AspNetCore.Hosting;
@@ -10,7 +8,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PostmarkDotNet;
-using PostmarkDotNet.Model;
 using System.Net.Mail;
 using static LiquidDocsNotify.LiquidDocsNotifyExtensions;
 
@@ -37,7 +34,7 @@ public class EmailBackgroundService : BackgroundService, IEmailBackgroundService
         this.logger = logger;
         this.options = options;
         this.notifyState = notifyState;
-        this.webEnv = webEnv;   
+        this.webEnv = webEnv;
 
         emailSemaphoreSlim = new(options.Value.MaxEmailThreads);
 
@@ -109,14 +106,13 @@ public class EmailBackgroundService : BackgroundService, IEmailBackgroundService
 
         string defaultRazorTemplate = "ForwarderJobAuditReport.cshtml";
 
-        string defaultLogo = "liquidDocsLogoImageOnly.png";
+        string defaultLogo = "images/Dominate Docs Logo_Horizontal-03.png";
 
         try
         {
             await emailSemaphoreSlim.WaitAsync();
 
             notifyState.EmailMsgList.TryAdd(email.Id, email);
-
 
             if (email.ProviderType == Enums.EmailEnums.Providers.Fluent)
             {
@@ -168,17 +164,14 @@ public class EmailBackgroundService : BackgroundService, IEmailBackgroundService
 
             if (email.ProviderType == Enums.EmailEnums.Providers.FluentPostMark)
             {
-                
             }
 
             if (email.ProviderType == Enums.EmailEnums.Providers.SendGrid)
             {
-
             }
 
             if (email.ProviderType == Enums.EmailEnums.Providers.PostMark)
             {
-
                 var attachments = new List<PostmarkMessageAttachment>();
 
                 TemplatedPostmarkMessage message = new PostmarkDotNet.TemplatedPostmarkMessage
@@ -188,11 +181,10 @@ public class EmailBackgroundService : BackgroundService, IEmailBackgroundService
                     ReplyTo = email.From,
                     TrackOpens = true,
                     TemplateId = email.PostMarkTemplateId,
-                    TemplateModel = email.TemplateModel 
+                    TemplateModel = email.TemplateModel
                 };
 
                 var logoBytes = File.ReadAllBytes(Path.Combine(logoBasePath, defaultLogo));
-
 
                 // New attachments
                 foreach (var att in email.Attachments)

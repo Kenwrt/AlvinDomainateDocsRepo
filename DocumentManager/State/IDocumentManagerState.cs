@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 
 namespace DocumentManager.State;
+
 public interface IDocumentManagerState
 {
     ConcurrentDictionary<Guid, DocumentMerge> DocumentList { get; set; }
@@ -18,12 +19,18 @@ public interface IDocumentManagerState
     DateTime ServiceLastRunTime { get; set; }
 
     event EventHandler<bool> IsRunBackgroundDocumentMergeServiceChanged;
+
     event EventHandler<bool> IsRunBackgroundHousekeeperServiceChanged;
+
     event EventHandler<bool> IsRunBackgroundLoanApplicationServiceChanged;
+
     event EventHandler StateChanged;
 
-    void IsHousekeeperActiveHasChanged(bool val);
-    void IsRunBackgroundDocumentMergeServiceHasChanged(bool val);
-    void IsRunBackgroundLoanApplicationServiceHasChanged(bool val);
+    Task IsHousekeeperActiveHasChanged(bool val);
+
+    Task IsRunBackgroundDocumentMergeServiceHasChanged(bool val);
+
+    Task IsRunBackgroundLoanApplicationServiceHasChanged(bool val);
+
     void StateHasChanged();
 }

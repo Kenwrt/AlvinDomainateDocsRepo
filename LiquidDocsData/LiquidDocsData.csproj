@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	  <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +30,12 @@
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="9.0.0" />
     <PackageReference Include="MongoDB.Bson" Version="3.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+	
+	
+
+  <ItemGroup>
+    <Folder Include="Models\RulesEngine\Fields\" />
   </ItemGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

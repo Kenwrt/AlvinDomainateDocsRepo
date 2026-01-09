@@ -1,17 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentManager.Services;
 using LiquidDocsData.Models;
 using LiquidDocsNotify.Enums;
 using LiquidDocsNotify.Models;
 using LiquidDocsNotify.State;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
-using Org.BouncyCastle.Utilities;
-using SharpCompress.Compressors.ADC;
 using System.Collections.ObjectModel;
 using System.IO.Compression;
 using System.Text;
@@ -23,8 +19,8 @@ public partial class TestMergeViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<LiquidDocsData.Models.Document> documentList = new();
 
-    [ObservableProperty]
-    private ObservableCollection<LiquidDocsData.Models.DocumentSet> documentSetList = new();
+    //[ObservableProperty]
+    //private ObservableCollection<LiquidDocsData.Models.DocumentSet> documentSetList = new();
 
     [ObservableProperty]
     private ObservableCollection<LiquidDocsData.Models.LoanAgreement> loanAgreementList = new();
@@ -42,7 +38,7 @@ public partial class TestMergeViewModel : ObservableObject
     private LiquidDocsData.Enums.DocumentTypes.TestTypes testType = LiquidDocsData.Enums.DocumentTypes.TestTypes.Document;
 
     [ObservableProperty]
-    private LiquidDocsData.Enums.DocumentTypes.OutputTypes outputType = LiquidDocsData.Enums.DocumentTypes.OutputTypes.Pdf;
+    private LiquidDocsData.Enums.DocumentTypes.OutputTypes outputType = LiquidDocsData.Enums.DocumentTypes.OutputTypes.PDF;
 
     [ObservableProperty]
     private EmailMsg selectedMailMsg = null;
@@ -53,8 +49,8 @@ public partial class TestMergeViewModel : ObservableObject
     [ObservableProperty]
     private LiquidDocsData.Models.LoanAgreement loanAgreement = null;
 
-    [ObservableProperty]
-    private LiquidDocsData.Models.DocumentSet editingDocumentSet = null;
+    // [ObservableProperty]
+    // private LiquidDocsData.Models.DocumentSet editingDocumentSet = null;
 
     [ObservableProperty]
     private LiquidDocsData.Models.Document selectedDocument = null;
@@ -92,12 +88,50 @@ public partial class TestMergeViewModel : ObservableObject
     {
         GetNewRecord();
 
-
         dbApp.GetRecords<LiquidDocsData.Models.LoanAgreement>().ToList().ForEach(la => LoanAgreementList.Add(la));
-              
+
         dbApp.GetRecords<LiquidDocsData.Models.Document>().ToList().ForEach(lf => DocumentList.Add(lf));
 
-        dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>().ToList().ForEach(lf => DocumentSetList.Add(lf));
+        //  dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>().ToList().ForEach(lf => DocumentSetList.Add(lf));
+    }
+
+    [RelayCommand]
+    private void MoveDocuments()
+    {
+       List<DocumentLibrary> docLibList =  dbApp.GetRecords<LiquidDocsData.Models.DocumentLibrary>().ToList();
+
+       foreach (var lib in docLibList)
+       {
+            foreach (var doc in lib.Documents)
+            {
+                if (doc.TemplateDocumentBytes is not null)
+                {
+                    DocumentStore docStore = new DocumentStore()
+                    {
+                        DocLibId = lib.Id,
+                        DocId = doc.Id,
+                        DocumentBytes = doc.TemplateDocumentBytes,
+                        Name = doc.Name,
+
+                    };
+
+                    dbApp.UpSertRecordAsync<LiquidDocsData.Models.DocumentStore>(docStore);
+
+                    lib.DocumentIds.Add(doc.Id);
+
+                    
+                }
+             
+               
+
+               
+            }
+
+       
+            dbApp.UpSertRecordAsync<LiquidDocsData.Models.DocumentLibrary>(lib);
+
+       }
+
 
     }
 
@@ -107,7 +141,6 @@ public partial class TestMergeViewModel : ObservableObject
         try
         {
             string ken = "";
-
 
             LiquidDocsNotify.Models.EmailMsg email = new EmailMsg()
             {
@@ -125,11 +158,9 @@ public partial class TestMergeViewModel : ObservableObject
                 },
 
                 Attachments = attachments
-
             };
 
             NotifyState.EmailMsgProcessingQueue.Enqueue(email);
-
         }
         catch (System.Exception ex)
         {
@@ -146,7 +177,6 @@ public partial class TestMergeViewModel : ObservableObject
 
         string docName = "";
 
-
         try
         {
             if (TestType == LiquidDocsData.Enums.DocumentTypes.TestTypes.Document)
@@ -154,8 +184,8 @@ public partial class TestMergeViewModel : ObservableObject
                 EmailAttachment attach;
 
                 var file = await ProcessDocumentAsync(EditingDocument);
-                               
-                if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.Word)
+
+                if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.DOCX)
                 {
                     docName = $"{EditingDocument.Name}.docm";
                 }
@@ -163,7 +193,7 @@ public partial class TestMergeViewModel : ObservableObject
                 {
                     docName = $"{EditingDocument.Name}.pdf";
                 }
-                     
+
                 if (IsZipFile)
                 {
                     if (!files.ContainsKey(docName)) files.Add(docName, file.MergedDocumentBytes);
@@ -183,7 +213,7 @@ public partial class TestMergeViewModel : ObservableObject
                 }
                 else
                 {
-                    if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.Word)
+                    if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.DOCX)
                     {
                         attach = new EmailAttachment
                         {
@@ -204,33 +234,30 @@ public partial class TestMergeViewModel : ObservableObject
                             OutputType = EmailAttachmentEnums.OutputType.PDF,
                             SourceType = EmailAttachmentEnums.Type.FileStream,
                             Stream = new MemoryStream(file.MergedDocumentBytes)
-
                         };
                     }
-
                 }
 
                 attachments.Add(attach);
             }
             else
             {
-                foreach (var doc in EditingDocumentSet.Documents)
-                {
-                    var file = await ProcessDocumentAsync(doc);
+                //foreach (var doc in EditingDocumentSet.Documents)
+                //{
+                //    var file = await ProcessDocumentAsync(doc);
 
-                    if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.Word)
-                    {
-                        docName = $"{doc.Name}.docm";
-                    }
-                    else
-                    {
-                        docName = $"{doc.Name}.pdf";
-                    }
+                //    if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.DOCX)
+                //    {
+                //        docName = $"{doc.Name}.docm";
+                //    }
+                //    else
+                //    {
+                //        docName = $"{doc.Name}.pdf";
+                //    }
 
+                //    if (!files.ContainsKey(docName)) files.Add(docName, file.MergedDocumentBytes);
 
-                    if (!files.ContainsKey(docName)) files.Add(docName, file.MergedDocumentBytes);
-                     
-                }
+                //}
 
                 if (!IsZipFile)
                 {
@@ -239,9 +266,8 @@ public partial class TestMergeViewModel : ObservableObject
                     //Make Attachment for each file
                     foreach (var file in files)
                     {
-                        if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.Pdf)
+                        if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.PDF)
                         {
-
                             attach = new EmailAttachment
                             {
                                 FileName = $"{file.Key}",
@@ -249,7 +275,6 @@ public partial class TestMergeViewModel : ObservableObject
                                 OutputType = EmailAttachmentEnums.OutputType.PDF,
                                 SourceType = EmailAttachmentEnums.Type.FileStream,
                                 Stream = new MemoryStream(file.Value)
-
                             };
                         }
                         else
@@ -267,7 +292,6 @@ public partial class TestMergeViewModel : ObservableObject
 
                         attachments.Add(attach);
                     }
-
                 }
                 else
                 {
@@ -275,24 +299,21 @@ public partial class TestMergeViewModel : ObservableObject
                     var zipStream = CreateZipStream(files);
                     zipStream.Position = 0;
 
-                    var attach = new EmailAttachment
-                    {
-                        FileName = $"{EditingDocumentSet.Name}.zip",
-                        ContentType = "application/zip",
-                        OutputType = EmailAttachmentEnums.OutputType.ZipFile,
+                    //var attach = new EmailAttachment
+                    //{
+                    //    FileName = $"{EditingDocumentSet.Name}.zip",
+                    //    ContentType = "application/zip",
+                    //    OutputType = EmailAttachmentEnums.OutputType.ZipFile,
 
-                        SourceType = EmailAttachmentEnums.Type.FileStream,
-                        Stream = new MemoryStream(zipStream.ToArray())
-                    };
+                    //    SourceType = EmailAttachmentEnums.Type.FileStream,
+                    //    Stream = new MemoryStream(zipStream.ToArray())
+                    //};
 
-                    attachments.Add(attach);
-
+                    // attachments.Add(attach);
                 }
-
             }
 
             SendMail(attachments);
-            
         }
         catch (Exception ex)
         {
@@ -346,7 +367,7 @@ public partial class TestMergeViewModel : ObservableObject
             if (msResult is not null)
             {
                 //doc.MergedDocumentBytes = wordServices.RemoveBadCompatSetting(msResult.ToArray());
-                
+
                 ////Validate Format of Return Byte Array
                 //var formatType = wordServices.DetectFormatBySignature(doc.MergedDocumentBytes);
 
@@ -370,14 +391,12 @@ public partial class TestMergeViewModel : ObservableObject
                 //var outPath = @"C:\Temp\processasync-output.docx";
                 //File.WriteAllBytes(outPath, doc.MergedDocumentBytes);
 
-
-                if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.Word)
+                if (OutputType == LiquidDocsData.Enums.DocumentTypes.OutputTypes.DOCX)
                 {
                     //no need to convert already in word format
 
                     msResult.Position = 0;
                     doc.Name = $"{doc.Name}";
-
                 }
                 else
                 {
@@ -389,11 +408,10 @@ public partial class TestMergeViewModel : ObservableObject
                     doc.Name = $"{doc.Name}";
 
                     //Convert to PDF
-                    
+
                     var pdfPath = Path.Combine(dir, $"{DisplayHelper.CapitalizeWordsNoSpaces(doc.Name)}-TestMerge.pdf");
                     await File.WriteAllBytesAsync(pdfPath, pdfStream.ToArray());
                 }
-
             }
             else
             {
@@ -403,14 +421,11 @@ public partial class TestMergeViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-
             logger.LogError($"Error during document merge: {ex.Message}");
         }
 
         return doc;
     }
-
-
 
     public static MemoryStream CreateZipStream(Dictionary<string, byte[]> files)
     {
@@ -597,8 +612,6 @@ public partial class TestMergeViewModel : ObservableObject
         return Task.FromResult(sb.ToString());
     }
 
-   
-
     [RelayCommand]
     private void SelectDocumentRecord(LiquidDocsData.Models.Document r)
     {
@@ -612,13 +625,11 @@ public partial class TestMergeViewModel : ObservableObject
     private void ClearDocumentSelection()
     {
         SelectedDocument = new();
-
     }
 
     [RelayCommand]
     private void GetNewRecord()
     {
-        EditingMailMsg = new LiquidDocsNotify.Models.EmailMsg ();
-
+        EditingMailMsg = new LiquidDocsNotify.Models.EmailMsg();
     }
 }

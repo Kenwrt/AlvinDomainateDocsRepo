@@ -54,9 +54,9 @@
 
                                     <MudTextField Class="" Style="background-color: white;" Variant="Variant.Outlined" @bind-Value="vm.EditingAgreement.ReferenceName" For="@(() => vm.EditingAgreement.ReferenceName)" Label="Give your Project a name!" Required="true" />
 
-                                    <MudSelect Variant="Variant.Outlined" T="Loan.Types" @bind-Value="vm.EditingAgreement.LoanType" Label="Loan Type">
+                                    <MudSelect Variant="Variant.Outlined" T="LoanType" @bind-Value="vm.EditingAgreement.LoanType" Label="Loan Type">
 
-                                        @foreach (var v in Enum.GetValues<Loan.Types>())
+                                        @foreach (var v in vm.LoanTypes)
                                         {
                                             <MudSelectItem Value="v">@v</MudSelectItem>
                                         }
@@ -116,8 +116,7 @@
                                     
 
                                   @*   <MudNumericField Immediate="false" Class="" Variant="Variant.Outlined" HideSpinButtons="true" T="decimal" @bind-Value="vm.EditingAgreement.DownPaymentPercentage" Format="N2" Label="Down Payment (%)" />
-                                    <MudText Class="ml-2" Typo="Typo.body1">Estimate Down Payment: @DisplayHelper.FormatDollarsCompact(vm.EstimatedDownPayment)</MudText>
- *@                                                                                                          
+                                    <MudText Class="ml-2" Typo="Typo.body1">Estimate Down Payment: @DisplayHelper.FormatDollarsCompact(vm.EstimatedDownPayment)</MudText>*@                                                                                                          
 
                                 </div>
 
@@ -536,12 +535,12 @@
         }
     }
 
-    private void SelectLoanType(DocumentSet docSet)
-    {
-        vm.EditingAgreement.DocumentSet = docSet;
+    // private void SelectLoanType(DocumentSet docSet)
+    // {
+    //     vm.EditingAgreement.DocumentSet = docSet;
 
-        StateHasChanged();
-    }
+    //     StateHasChanged();
+    // }
 
     private string GetCardStyle(string loanType)
     {

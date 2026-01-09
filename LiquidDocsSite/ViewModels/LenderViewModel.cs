@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -31,7 +30,7 @@ public partial class LenderViewModel : ObservableObject
     private readonly IMongoDatabaseRepo dbApp;
     private readonly ILogger<LenderViewModel> logger;
     private IApplicationStateManager appState;
-   
+    private static readonly Random rng = Random.Shared;
 
     private readonly UserSession userSession;
 
@@ -44,8 +43,6 @@ public partial class LenderViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-
-        
     }
 
     [RelayCommand]
@@ -64,7 +61,6 @@ public partial class LenderViewModel : ObservableObject
         }
     }
 
-    
     [RelayCommand]
     private async Task UpsertRecord()
     {
@@ -77,23 +73,18 @@ public partial class LenderViewModel : ObservableObject
 
         if (index > -1)
         {
-
             RecordList[index] = EditingRecord;
-
         }
         else
         {
-            
-            RecordList.Add(EditingRecord);  
+            RecordList.Add(EditingRecord);
         }
 
         index = MyLenderList.FindIndex(x => x.Id == EditingRecord.Id);
 
         if (index > -1)
         {
-
             MyLenderList[index] = EditingRecord;
-
         }
         else
         {
@@ -101,25 +92,19 @@ public partial class LenderViewModel : ObservableObject
         }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.Lender>(EditingRecord);
-
-
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.Lender r)
     {
-
         int lenderIndex = RecordList.FindIndex(x => x.Id == r.Id);
 
         if (lenderIndex > -1)
         {
-
             RecordList.RemoveAt(lenderIndex);
-
         }
 
         dbApp.DeleteRecord<LiquidDocsData.Models.Lender>(r);
-
     }
 
     [RelayCommand]
@@ -142,13 +127,19 @@ public partial class LenderViewModel : ObservableObject
         }
     }
 
+    public int GenerateLenderCode()
+    {
+        return rng.Next(10000, 100000); // upper bound is exclusive
+    }
+
     [RelayCommand]
     private void GetNewRecord()
     {
         EditingRecord = new LiquidDocsData.Models.Lender()
         {
-            UserId = Guid.Parse(userId)
+            UserId = Guid.Parse(userId),
+            LenderCode = GenerateLenderCode()
+
         };
-               
     }
 }

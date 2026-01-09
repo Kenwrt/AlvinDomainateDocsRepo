@@ -1,5 +1,4 @@
-﻿
-using FluentValidation;
+﻿using FluentValidation;
 using LiquidDocsData.Enums;
 using LiquidDocsData.Models;
 

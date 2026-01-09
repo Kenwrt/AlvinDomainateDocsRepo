@@ -5,19 +5,13 @@ using DocumentManager.Services;
 using DocumentManager.State;
 using LiquidDocsData.Enums;
 using LiquidDocsData.Models;
+using LiquidDocsData.Models.DTOs;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
-using Microsoft.Extensions.Azure;
-using Microsoft.VisualBasic;
-using Newtonsoft.Json.Serialization;
 using Nextended.Core.Extensions;
-using OpenXmlPowerTools;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Runtime.Intrinsics.Arm;
-using static LiquidDocsData.Enums.Payment;
-
 
 namespace LiquidDocsSite.ViewModels;
 
@@ -27,16 +21,13 @@ public partial class LoanAgreementViewModel : ObservableObject
     private ObservableCollection<LiquidDocsData.Models.LoanAgreement>? agreementList = new();
 
     [ObservableProperty]
-    private ObservableCollection<LiquidDocsData.Models.DocumentSet>? documentSetList = new();
-
+    private ObservableCollection<LiquidDocsData.Models.DTOs.LoanTypeListDTO>? loanTypes = new();
 
     [ObservableProperty]
     private LiquidDocsData.Models.Borrower selectedBorrower = null;
 
-
     [ObservableProperty]
     private LiquidDocsData.Models.Broker selectedBroker = null;
-
 
     [ObservableProperty]
     private LiquidDocsData.Models.Guarantor selectedGuarantor = null;
@@ -46,7 +37,6 @@ public partial class LoanAgreementViewModel : ObservableObject
 
     [ObservableProperty]
     private LiquidDocsData.Models.PropertyRecord selectedProperty = null;
-
 
     [ObservableProperty]
     private LiquidDocsData.Models.LoanAgreement editingAgreement = null;
@@ -62,6 +52,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
     // Mirror fields bound by the UI (keep names obvious)
     [ObservableProperty] private decimal principalAmount;
+
     [ObservableProperty] private decimal interestRate;
     [ObservableProperty] private decimal initialMargin;
     [ObservableProperty] private decimal estimatedDwnPaymentAmount;
@@ -80,7 +71,6 @@ public partial class LoanAgreementViewModel : ObservableObject
     [ObservableProperty] private BalloonPayments payBalloonSchedule;
     [ObservableProperty] private PaymentSchedule fixedPaymentSchedule;
 
-
     private string userId;
 
     private UserSession session;
@@ -93,7 +83,7 @@ public partial class LoanAgreementViewModel : ObservableObject
     private IDocumentManagerState docState;
     private ILoanScheduler loanScheduler;
     private IBalloonPaymentCalculater balloonPaymentCalculater;
-    private IFetchCurrentIndexRatesAndSchedulesService indexRates; 
+    private IFetchCurrentIndexRatesAndSchedulesService indexRates;
 
     private int nextLoanNumber = 0;
 
@@ -111,15 +101,14 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         userId = userSession.UserId;
 
+        LoanTypes = new ObservableCollection<LiquidDocsData.Models.DTOs.LoanTypeListDTO>(dbApp.GetRecords<LiquidDocsData.Models.LoanType>().Select(x => new LiquidDocsData.Models.DTOs.LoanTypeListDTO(x.Id, x.Name, x.Description, x.IconKey)));
+
     }
 
     [RelayCommand]
     private async Task InitializePage()
     {
-       
         AgreementList = new ObservableCollection<LiquidDocsData.Models.LoanAgreement>(dbApp.GetRecords<LiquidDocsData.Models.LoanAgreement>().Where(x => x.UserId == Guid.Parse(userSession.UserId)));
-
-        DocumentSetList = new ObservableCollection<LiquidDocsData.Models.DocumentSet>(dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>().Where(x => x.UserId == Guid.Parse(userSession.UserId)));
 
         if (AgreementList.Count > 0)
         {
@@ -138,7 +127,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         SyncFromEditingAgreement();
     }
-    
+
     [RelayCommand]
     private async Task InitializeRecord()
     {
@@ -157,7 +146,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         }
 
         GetLoanMaturityDate(EditingAgreement.TermInMonths);
-       
     }
 
     [RelayCommand]
@@ -169,9 +157,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
             if (index > -1)
             {
-
                 AgreementList[index] = r;
-
             }
             else
             {
@@ -185,8 +171,7 @@ public partial class LoanAgreementViewModel : ObservableObject
             string Error = ex.Message;
         }
     }
-       
-    
+
     [RelayCommand]
     private async Task EditAgreement(LiquidDocsData.Models.LoanAgreement r)
     {
@@ -194,9 +179,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             AgreementList[index] = r;
-
         }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.LoanAgreement>(EditingAgreement);
@@ -215,9 +198,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
             if (index > -1)
             {
-
                 AgreementList.RemoveAt(index);
-
             }
 
             dbApp.DeleteRecord<LiquidDocsData.Models.LoanAgreement>(SelectedAgreement);
@@ -233,10 +214,7 @@ public partial class LoanAgreementViewModel : ObservableObject
     {
         SelectedAgreement = EditingAgreement;
 
-
-       
-            GetLoanMaturityDate(EditingAgreement.TermInMonths);
-       
+        GetLoanMaturityDate(EditingAgreement.TermInMonths);
     }
 
     [RelayCommand]
@@ -270,26 +248,20 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Borrowers.RemoveAt(index);
-
         }
 
         UpsertAgreement(EditingAgreement);
-
     }
 
     [RelayCommand]
     private async Task UpsertBorrower(LiquidDocsData.Models.Borrower r)
     {
-
         int index = EditingAgreement.Borrowers.FindIndex(x => x.Id == r.Id);
 
         if (index > -1)
         {
-
             EditingAgreement.Borrowers[index] = r;
-
         }
         else
         {
@@ -306,9 +278,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Brokers.RemoveAt(index);
-
         }
 
         UpsertAgreement(EditingAgreement);
@@ -321,9 +291,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Brokers[index] = r;
-
         }
         else
         {
@@ -340,9 +308,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Guarantors.RemoveAt(index);
-
         }
 
         UpsertAgreement(EditingAgreement);
@@ -355,9 +321,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Guarantors[index] = r;
-
         }
         else
         {
@@ -374,9 +338,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-            
             EditingAgreement.Lenders.RemoveAt(index);
-
         }
 
         UpsertAgreement(EditingAgreement);
@@ -389,9 +351,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Lenders[index] = r;
-
         }
         else
         {
@@ -408,9 +368,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Properties.RemoveAt(index);
-
         }
 
         UpsertAgreement(EditingAgreement);
@@ -423,9 +381,7 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             EditingAgreement.Properties[index] = r;
-
         }
         else
         {
@@ -497,12 +453,10 @@ public partial class LoanAgreementViewModel : ObservableObject
             }
 
             EditingAgreement.BalloonPayments.DueDate = DateOnly.FromDateTime(date.AddMonths(termsInMonths));
-
         }
 
         return EditingAgreement.BalloonPayments.DueDate;
     }
-
 
     partial void OnEditingAgreementChanged(LiquidDocsData.Models.LoanAgreement value) => SyncFromEditingAgreement();
 
@@ -530,8 +484,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         RateType = EditingAgreement.RateType;
         PaySchedule = EditingAgreement.VariableInterestProperties.PaymentSchedule;
         FixedPaymentSchedule = EditingAgreement.FixedPaymentSchedule;
-
-
     }
 
     //public PaymentSchedule PaymentSchedule()
@@ -549,7 +501,6 @@ public partial class LoanAgreementViewModel : ObservableObject
     //    {
     //        if (EditingAgreement.FixedInterestProperties.InterestRate != 0 && EditingAgreement.PrincipalAmount != 0)
     //        {
-
     //            result = loanScheduler.GenerateFixed(EditingAgreement.DownPaymentAmmount, EditingAgreement.FixedInterestProperties.InterestRate, EditingAgreement.DownPaymentPercentage, startDate, endDate, EditingAgreement.FixedInterestProperties.AmorizationType);
     //        }
     //    }
@@ -565,15 +516,12 @@ public partial class LoanAgreementViewModel : ObservableObject
     //    return result;
     //}
 
-
-
     //*********************************************************************
     // Push mirrors back into the model and recompute on each change
     partial void OnPrincipalAmountChanged(decimal value)
     {
         if (EditingAgreement is null) return;
         EditingAgreement.PrincipalAmount = value;
-
 
         if (EditingAgreement.RateType == Payment.RateTypes.Variable)
         {
@@ -582,7 +530,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         else
         {
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
         }
     }
 
@@ -592,8 +539,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         EditingAgreement.BalloonPayments = value;
 
         // RecomputeSchedule(EditingAgreement.VariableInterestProperties.TermInMonths, EditingAgreement.VariableInterestProperties.InterestRate, EditingAgreement.VariableInterestProperties.RepaymentSchedule, EditingAgreement.VariableInterestProperties.AmorizationType);
-
-
     }
 
     partial void OnPayScheduleChanged(PaymentSchedule value)
@@ -601,7 +546,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         if (EditingAgreement is null) return;
 
         EditingAgreement.VariableInterestProperties.PaymentSchedule = value;
-
     }
 
     partial void OnFixedPaymentScheduleChanged(PaymentSchedule value)
@@ -609,7 +553,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         if (EditingAgreement is null) return;
 
         EditingAgreement.FixedPaymentSchedule = value;
-
     }
 
     partial void OnBalloonAmountChanged(decimal value)
@@ -617,10 +560,7 @@ public partial class LoanAgreementViewModel : ObservableObject
         if (EditingAgreement is null) return;
         EditingAgreement.BalloonPayments.BalloonAmount = value;
 
-
         RecomputeBalloonSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
-
     }
 
     partial void OnInterestRateChanged(decimal value)
@@ -636,8 +576,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         else
         {
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
-
         }
     }
 
@@ -646,10 +584,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         if (EditingAgreement is null) return;
 
         EditingAgreement.InitialMargin = value;
-
-        
-
-
     }
 
     partial void OnTermInMonthsChanged(int value)
@@ -658,17 +592,13 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         EditingAgreement.TermInMonths = value;
 
-
         if (EditingAgreement.RateType == Payment.RateTypes.Variable)
         {
-            
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType, EditingAgreement.VariableInterestProperties.RateChangeList);
         }
         else
         {
-           
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
         }
     }
 
@@ -676,12 +606,9 @@ public partial class LoanAgreementViewModel : ObservableObject
     {
         if (EditingAgreement is null) return;
 
-
         EditingAgreement.BalloonPayments.BalloonTermMonths = value;
 
         RecomputeBalloonSchedule(EditingAgreement.BalloonPayments.BalloonTermMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
-
     }
 
     partial void OnAmorizationTypeChanged(LiquidDocsData.Enums.Payment.AmortizationTypes value)
@@ -695,14 +622,11 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         EditingAgreement.AmorizationType = value;
 
-
-
         if (EditingAgreement.RateType == Payment.RateTypes.Variable)
         {
             //var latestSofr = indexRates.GetLatestSofrAsync();
 
             //var curve = indexRates.GetLatestSofrAsync(latestSofr, resetsNeeded: 12);
-
 
             var schedule = indexRates.GenerateProjectedSchedule(terms: new FetchCurrentIndexRatesAndSchedulesService.LoanTerms());
 
@@ -710,10 +634,7 @@ public partial class LoanAgreementViewModel : ObservableObject
         }
         else
         {
-          
-            
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
         }
     }
 
@@ -723,17 +644,13 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         EditingAgreement.RepaymentSchedule = value;
 
-
         if (EditingAgreement.RateType == Payment.RateTypes.Variable)
         {
-            
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType, EditingAgreement.VariableInterestProperties.RateChangeList);
         }
         else
         {
-          
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
         }
     }
 
@@ -750,7 +667,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         else
         {
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType);
-
         }
     }
 
@@ -759,8 +675,6 @@ public partial class LoanAgreementViewModel : ObservableObject
         if (EditingAgreement is null) return;
 
         EditingAgreement.DownPaymentPercentage = value;
-
-        
     }
 
     partial void OnRateIndexChanged(LiquidDocsData.Enums.Payment.RateIndexes value)
@@ -773,17 +687,12 @@ public partial class LoanAgreementViewModel : ObservableObject
         {
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType, EditingAgreement.VariableInterestProperties.RateChangeList);
         }
-       
-      
     }
 
     partial void OnMaturityDateChanged(DateTime? value)
     {
         if (EditingAgreement is null) return;
         EditingAgreement.MaturityDate = value;
-
-
-       
     }
 
     partial void OnAdjustmentIntervalChanged(LiquidDocsData.Enums.Payment.Schedules value)
@@ -794,11 +703,8 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (EditingAgreement.RateType == Payment.RateTypes.Variable)
         {
-            
-
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType, EditingAgreement.VariableInterestProperties.RateChangeList);
         }
-        
     }
 
     partial void OnAssumedIndexPathChanged(LiquidDocsData.Enums.Payment.IndexPaths value)
@@ -809,20 +715,15 @@ public partial class LoanAgreementViewModel : ObservableObject
 
         if (EditingAgreement.RateType == Payment.RateTypes.Variable)
         {
-            
-
             RecomputeSchedule(EditingAgreement.TermInMonths, EditingAgreement.InterestRate, EditingAgreement.RepaymentSchedule, EditingAgreement.AmorizationType, EditingAgreement.VariableInterestProperties.RateChangeList);
         }
-       
     }
-
 
     // Single place that decides schedule creation with full null-safety
     private void RecomputeSchedule(int termsInMoths, decimal interestRate, Payment.Schedules paymentSchedule, Payment.AmortizationTypes amortizationType, List<RateChange>? rateChangeList = null)
     {
         try
         {
-                 
             if (EditingAgreement is null)
             {
                 CurrentSchedule = new();
@@ -837,7 +738,6 @@ public partial class LoanAgreementViewModel : ObservableObject
 
             if (EditingAgreement.PrincipalAmount > 0 && EditingAgreement.DownPaymentPercentage > -1 && termsInMoths > 0 && start < end)
             {
-
                 if (EditingAgreement.PrincipalAmount <= 0 || interestRate <= 0 || end <= start)
                 {
                     CurrentSchedule = new();
@@ -850,7 +750,7 @@ public partial class LoanAgreementViewModel : ObservableObject
                     {
                         EditingAgreement.FixedPaymentSchedule = CurrentSchedule;
                     }
-                    
+
                     return;
                 }
 
@@ -867,10 +767,7 @@ public partial class LoanAgreementViewModel : ObservableObject
                         amortizationType: amortizationType,
                         amortizationTermMonths: termsInMoths);
 
-                    EditingAgreement.FixedPaymentSchedule = schedule ?? new(); 
-
-
-
+                    EditingAgreement.FixedPaymentSchedule = schedule ?? new();
                 }
                 else
                 {
@@ -885,11 +782,8 @@ public partial class LoanAgreementViewModel : ObservableObject
 
                     EditingAgreement.VariableInterestProperties.PaymentSchedule = schedule ?? new();
                 }
-            
 
                 //CurrentSchedule = schedule ?? new();
-
-                
             }
         }
         catch (SystemException ex)
@@ -900,11 +794,8 @@ public partial class LoanAgreementViewModel : ObservableObject
 
     private void RecomputeBalloonSchedule(int termsInMoths, decimal interestRate, Payment.Schedules paymentSchedule, Payment.AmortizationTypes amortizationType)
     {
-
-
         try
         {
-
             if (EditingAgreement is null)
             {
                 CurrentBalloonSchedule = new BalloonPayments();
@@ -919,36 +810,26 @@ public partial class LoanAgreementViewModel : ObservableObject
 
             if (EditingAgreement.PrincipalAmount > 0 && EditingAgreement.DownPaymentPercentage > -1 && termsInMoths > 0 && start < end)
             {
-
                 if (EditingAgreement.PrincipalAmount <= 0 || interestRate <= 0 || end <= start)
                 {
-                   return;
+                    return;
                 }
 
                 BalloonPayments schedule = null;
 
-
                 DateTime firstPayment = EditingAgreement.SignedDate ?? DateTime.Today;
 
-               
-                    schedule = balloonPaymentCalculater.Generate(
-                        principal: EditingAgreement.PrincipalAmount - EditingAgreement.DownPaymentAmmount, 
-                        annualRatePercent: InterestRate,
-                        amortizationTermMonths: TermInMonths,
-                        balloonTermMonths: BalloonTermMonths,
-                        firstPaymentDate: firstPayment.AddMonths(1),
-                        paymentsPerYear: 12);
+                schedule = balloonPaymentCalculater.Generate(
+                    principal: EditingAgreement.PrincipalAmount - EditingAgreement.DownPaymentAmmount,
+                    annualRatePercent: InterestRate,
+                    amortizationTermMonths: TermInMonths,
+                    balloonTermMonths: BalloonTermMonths,
+                    firstPaymentDate: firstPayment.AddMonths(1),
+                    paymentsPerYear: 12);
 
+                PayBalloonSchedule = schedule ?? new();
 
-                    PayBalloonSchedule = schedule ?? new();
-
-                    PayBalloonSchedule.DueDate = GetBalloonDate(BalloonTermMonths);
-
-
-
-                
-
-
+                PayBalloonSchedule.DueDate = GetBalloonDate(BalloonTermMonths);
             }
         }
         catch (SystemException ex)
@@ -957,5 +838,3 @@ public partial class LoanAgreementViewModel : ObservableObject
         }
     }
 }
-
-  

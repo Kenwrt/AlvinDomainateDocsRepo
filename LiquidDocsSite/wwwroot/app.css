@@ -143,3 +143,246 @@ h1:focus {
 .long-textfield {
     width: 600px;
 }
+
+.lsq-page {
+    padding-top: 18px;
+    padding-bottom: 28px;
+}
+
+.lsq-card {
+    position: relative;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 10px;
+    padding: 18px 18px 14px 18px;
+    margin-bottom: 16px;
+    background: white;
+}
+
+.lsq-top {
+    padding-top: 14px;
+}
+
+.lsq-label {
+    margin-bottom: 6px;
+    color: rgba(0,0,0,.78);
+}
+
+.lsq-hint {
+    margin-top: 6px;
+    color: rgba(0,0,0,.55);
+}
+
+.lsq-muted {
+    color: rgba(0,0,0,.55) !important;
+}
+
+.lsq-top-actions {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    gap: 6px;
+}
+
+.lsq-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.lsq-section-header-spacer {
+    flex: 1;
+}
+
+.lsq-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    font-size: 13px;
+    background: #6f2cff; /* close to screenshot purple */
+    color: white;
+}
+
+.lsq-choice-mode {
+    margin-top: 8px;
+}
+
+.lsq-choices {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lsq-choice-row {
+    display: grid;
+    grid-template-columns: 24px 1fr 34px;
+    gap: 10px;
+    align-items: center;
+}
+
+.lsq-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 10px;
+}
+
+.lsq-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lsq-footer-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rule-group {
+    border-radius: 6px;
+}
+
+.rule-row .rule-field {
+    min-width: 320px;
+    flex: 0 0 320px;
+}
+
+.rule-row .rule-op {
+    min-width: 240px;
+    flex: 0 0 240px;
+}
+
+.rule-row .rule-values {
+    min-width: 420px;
+    flex: 1 1 auto;
+}
+
+.available-docs-shell {
+    width: 100%;
+    min-height: 400px;
+    max-height: 520px; /* optional */
+    overflow: auto; /* optional */
+}
+
+.available-docs-inner {
+    max-height: 90px; /* adjust if you want taller */
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.available-docs-arrows {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    bottom: 6px;
+    width: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-left: 1px solid rgba(0,0,0,0.12);
+    padding-left: 4px;
+}
+
+.select-docs-link {
+    align-self: center;
+    margin-left: 6px;
+    white-space: nowrap;
+}
+
+.available-docs-hidden {
+    display: none;
+}
+
+.auto-switch-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between; /* forces separation */
+    align-items: center;
+    gap: 48px; /* safety */
+}
+
+
+
+:root {
+    --dd-navy: #0D1C2E;
+    --dd-slate: #253F59;
+    --dd-deepslate: #223447;
+    --dd-hover: #3E566E;
+    --dd-black: #1E1E1E;
+    --dd-charcoal: #333333;
+    --dd-carbon: #5C5C5C;
+    --dd-mid: #B0B0B0;
+    --dd-light: #E6E6E6;
+    --dd-white: #FFFFFF;
+}
+
+/* Global font */
+body, .mud-typography {
+    font-family: Poppins, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+
+/* Optional: give your appbar a “premium” look without touching the logo itself */
+.mud-appbar {
+    background: linear-gradient(90deg, var(--dd-navy), var(--dd-slate)) !important;
+}
+
+/* Primary buttons: tighter, more “executive software”, less “bootstrap toy” */
+.mud-button-filled-primary {
+    border-radius: 14px !important;
+    box-shadow: none !important;
+}
+
+    .mud-button-filled-primary:hover {
+        background-color: var(--dd-hover) !important;
+    }
+
+/* Outline buttons: match slate */
+.mud-button-outlined-primary {
+    border-color: var(--dd-slate) !important;
+    color: var(--dd-slate) !important;
+}
+
+    .mud-button-outlined-primary:hover {
+        background-color: var(--dd-light) !important;
+    }
+
+/* Inputs: clean borders + branded focus ring */
+.mud-input-outlined .mud-input-outlined-border {
+    border-color: var(--dd-mid) !important;
+}
+
+.mud-input-outlined:focus-within .mud-input-outlined-border {
+    border-color: var(--dd-slate) !important;
+}
+
+.mud-input:focus-within {
+    box-shadow: 0 0 0 3px rgba(37,63,89,0.20) !important; /* slate glow */
+    border-radius: 14px;
+}
+
+/* Tables: subtle header + crisp dividers */
+.mud-table thead th {
+    background-color: var(--dd-light) !important;
+    color: var(--dd-black) !important;
+    font-weight: 600 !important;
+}
+
+.mud-table tbody tr:hover {
+    background-color: rgba(62,86,110,0.10) !important; /* muted steel hover */
+}
+
+/* Chips / tags: keep them calm */
+.mud-chip {
+    border-radius: 999px !important;
+}
+

@@ -1,8 +1,5 @@
-﻿
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -29,7 +26,7 @@ public partial class QuickPropertyViewModel : ObservableObject
     private readonly IMongoDatabaseRepo dbApp;
     private IApplicationStateManager appState;
     private readonly ILogger<PropertyViewModel> logger;
-   
+
     public QuickPropertyViewModel(IMongoDatabaseRepo dbApp, ILogger<PropertyViewModel> logger, UserSession userSession, IApplicationStateManager appState)
     {
         this.dbApp = dbApp;
@@ -38,9 +35,7 @@ public partial class QuickPropertyViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-            
     }
-
 
     [RelayCommand]
     private async Task InitializePage()
@@ -52,8 +47,6 @@ public partial class QuickPropertyViewModel : ObservableObject
         RecordList.Clear();
 
         dbApp.GetRecords<LiquidDocsData.Models.PropertyRecord>().Where(x => x.UserId == Guid.Parse(userId)).ToList().ForEach(lf => RecordList.Add(lf));
-
-
     }
 
     [RelayCommand]
@@ -65,9 +58,7 @@ public partial class QuickPropertyViewModel : ObservableObject
 
         if (recordListIndex > -1)
         {
-
             RecordList[recordListIndex] = EditingRecord;
-
         }
         else
         {
@@ -78,9 +69,7 @@ public partial class QuickPropertyViewModel : ObservableObject
 
         if (myPropertyIndex > -1)
         {
-
             MyPropertyList[myPropertyIndex] = EditingRecord;
-
         }
         else
         {
@@ -88,22 +77,17 @@ public partial class QuickPropertyViewModel : ObservableObject
         }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.PropertyRecord>(EditingRecord);
-
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.PropertyRecord r)
     {
-              
         int myPropertyIndex = MyPropertyList.FindIndex(x => x.Id == r.Id);
 
         if (myPropertyIndex > -1)
         {
-
             MyPropertyList.RemoveAt(myPropertyIndex);
-
         }
-                    
     }
 
     [RelayCommand]
@@ -111,7 +95,6 @@ public partial class QuickPropertyViewModel : ObservableObject
     {
         if (r != null)
         {
-            
             SelectedRecord = r;
             EditingRecord = r;
         }
@@ -134,7 +117,5 @@ public partial class QuickPropertyViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-               
     }
-
 }

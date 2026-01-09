@@ -13,7 +13,7 @@
     <MudGrid>
         @if (isDisplayAssignedDocuments)
         {
-            <MudItem xs="12" md="8">
+           @*  <MudItem xs="12" md="8">
                 <MudText Typo="Typo.h6">
                     Document Set: @vm.SelectedDocumentSet.Name - Assigned Document List
                 </MudText>
@@ -55,13 +55,13 @@
                         </MudText>
                     </NoRecordsContent>
                 </MudTable>
-            </MudItem>
+            </MudItem> *@
         }
         else
         {
 
             <MudItem xs="12" md="8">
-                <MudTable @ref="table" T="LiquidDocsData.Models.Document" Items="availableDocuments" MultiSelection="true" SelectionChangeable="true" Hover="true"
+               @*  <MudTable @ref="table" T="LiquidDocsData.Models.Document" Items="availableDocuments" MultiSelection="true" SelectionChangeable="true" Hover="true"
                           @bind-SelectedItems="vm.SelectedAssignedDocuments" OnRowClick="@OnRowClickAsync" SelectOnRowClick="true">
 
                     <HeaderContent>
@@ -84,7 +84,7 @@
                     <PagerContent>
                         <MudTablePager PageSizeOptions="new int[] { 10, 25, 50, 100 }" />
                     </PagerContent>
-                </MudTable>
+                </MudTable> *@
             </MudItem>
             <MudItem xs="12" md="12">
                 <MudStack Row="true" Spacing="2" Class="mt-4">
@@ -160,10 +160,10 @@
         AssignedDocumentList.Remove(doc);
     }
 
-    private async Task OnClickRecordAsync(DocumentSet? ds)
-    {
+    // private async Task OnClickRecordAsync(DocumentSet? ds)
+    // {
 
-    }
+    // }
 
     private async Task OnClickAssignmentCompleteAsync()
     {
@@ -187,10 +187,10 @@
     }
 
     
-    private async Task OnSelectDocumentAsync(DocumentSet? ds)
-    {
-        isDisplayAssignedDocuments = true;
-    }
+    // private async Task OnSelectDocumentAsync(DocumentSet? ds)
+    // {
+    //     isDisplayAssignedDocuments = true;
+    // }
        
     private async Task OnRowClickAsync(TableRowClickEventArgs<LiquidDocsData.Models.Document> args)
     {

@@ -46,8 +46,8 @@
 
             <MudTextField Class="ml-4" Variant="Variant.Outlined" @bind-Value="vm.EditingAgreement.ReferenceName" @bind-Value:after="@(() => OnReferenceNameChanged(""))" Required="true" Label="Reference Name" />
 
-            <MudSelect Class="ml-4" Variant="Variant.Outlined" T="Loan.Types" @bind-Value="vm.EditingAgreement.LoanType" Label="Loan Type">
-                @foreach (var v in Enum.GetValues<Loan.Types>())
+            <MudSelect Class="ml-4" Variant="Variant.Outlined" T="LoanType" @bind-Value="vm.EditingAgreement.LoanType" Label="Loan Type">
+                @foreach (var v in vm.LoanTypes)
                 {
                     <MudSelectItem Value="v">@v</MudSelectItem>
                 }
@@ -227,12 +227,12 @@
 
             }
 
-            <MudSelect Class="ml-2 mb-4" Variant="Variant.Outlined" T="DocumentSet" @bind-Value="vm.EditingAgreement.DocumentSet" Label="Document Set">
+           @*  <MudSelect Class="ml-2 mb-4" Variant="Variant.Outlined" T="DocumentSet" @bind-Value="vm.EditingAgreement.DocumentSet" Label="Document Set">
                 @foreach (var v in vm.DocumentSetList)
                 {
                     <MudSelectItem Value="v">@v.Name</MudSelectItem>
                 }
-            </MudSelect>
+            </MudSelect> *@
 
             <MudSwitch Class="ml-2" @bind-Value="vm.EditingAgreement.IsLoanIntendedForSale" Color="Color.Primary" Label="Loan Intended For Sale" />
 
@@ -349,8 +349,8 @@
 
     private bool AddEdit = false;
 
-    private List<DocumentSet> docSetList;
-    private DocumentSet selectedDocumentSet = new();
+   // private List<DocumentSet> docSetList;
+   // private DocumentSet selectedDocumentSet = new();
 
     private MudForm formEditRecord = new();
 
@@ -369,7 +369,7 @@
     {
         vm.InitializeRecordCommand.Execute(null);
                       
-        docSetList = dbApp.GetRecords<DocumentSet>().ToList();
+      //  docSetList = dbApp.GetRecords<DocumentSet>().ToList();
 
 
     }

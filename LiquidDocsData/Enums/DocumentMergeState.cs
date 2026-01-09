@@ -16,11 +16,7 @@ public class DocumentMergeState
         [System.ComponentModel.Description("Complete")]
         Complete,
 
-
-
         [System.ComponentModel.Description("Submittied")]
         Submittied
     }
-
-    
 }

@@ -12,6 +12,3 @@ public class BalloonPayments
     public decimal TotalInterestBeforeBalloon { get; set; }
     public decimal TotalPaidIncludingBalloon { get; set; }
 }
-
-
-

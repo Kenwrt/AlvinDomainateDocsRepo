@@ -3,7 +3,6 @@ using LiquidDocsData.Models;
 
 namespace LiquidDocsData.FluentValidation;
 
-
 public class RegistrationValidator : AbstractValidator<UserProfile>
 {
     public RegistrationValidator()
@@ -24,29 +23,29 @@ public class RegistrationValidator : AbstractValidator<UserProfile>
         RuleFor(x => x.ConfirmedPassword)
             .Equal(x => x.Password).WithMessage("Passwords do not match.");
 
-        RuleFor(x => x.Name)
-           .NotEmpty().WithMessage("Name is required")
-           .MaximumLength(120);
+        //RuleFor(x => x.Name)
+        //   .NotEmpty().WithMessage("Name is required")
+        //   .MaximumLength(120);
 
-        RuleFor(x => x.Email)
-            .NotEmpty().WithMessage("Email is required")
-            .EmailAddress().WithMessage("Invalid email address")
-            .MaximumLength(60);
+        //RuleFor(x => x.Email)
+        //    .NotEmpty().WithMessage("Email is required")
+        //    .EmailAddress().WithMessage("Invalid email address")
+        //    .MaximumLength(60);
 
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage("Phone Number is required")
-            .MaximumLength(12);
+        //RuleFor(x => x.PhoneNumber)
+        //    .NotEmpty().WithMessage("Phone Number is required")
+        //    .MaximumLength(12);
 
-        RuleFor(x => x.StreetAddress)
-            .NotEmpty().WithMessage("Street Address is required")
-            .MaximumLength(120);
+        //RuleFor(x => x.StreetAddress)
+        //    .NotEmpty().WithMessage("Street Address is required")
+        //    .MaximumLength(120);
 
-        RuleFor(x => x.City)
-            .NotEmpty().WithMessage("City is required")
-            .MaximumLength(120);
+        //RuleFor(x => x.City)
+        //    .NotEmpty().WithMessage("City is required")
+        //    .MaximumLength(120);
 
-        RuleFor(x => x.ZipCode)
-            .NotEmpty().WithMessage("Zip Code is required")
-            .MaximumLength(60);
+        //RuleFor(x => x.ZipCode)
+        //    .NotEmpty().WithMessage("Zip Code is required")
+        //    .MaximumLength(60);
     }
 }

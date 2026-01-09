@@ -28,11 +28,38 @@ public class DocumentTypes
 
     public enum OutputTypes
     {
-        [System.ComponentModel.Description("Word")]
-        Word,
+        [System.ComponentModel.Description("DOCX and PDF")]
+        DOCXPDF,
 
-        [System.ComponentModel.Description("Pdf")]
-        Pdf
+        [System.ComponentModel.Description("DOCX")]
+        DOCX,
+
+        [System.ComponentModel.Description("PDF")]
+        PDF
+    }
+
+    public enum GenerateMultipleFor
+    {
+        [System.ComponentModel.Description("Lenders")]
+        Lenders,
+
+        [System.ComponentModel.Description("Borrowers")]
+        Borrowers,
+
+        [System.ComponentModel.Description("Guarantors")]
+        Guarantors,
+
+        [System.ComponentModel.Description("Trustees")]
+        Trustees,
+
+        [System.ComponentModel.Description("Properties")]
+        Properties,
+
+        [System.ComponentModel.Description("Assignees")]
+        Assignees,
+
+        [System.ComponentModel.Description("Brokers")]
+        Brokers
     }
 
     public enum TestTypes
@@ -42,8 +69,5 @@ public class DocumentTypes
 
         [System.ComponentModel.Description("Document Set")]
         DocumentSet
-
     }
-
-
 }

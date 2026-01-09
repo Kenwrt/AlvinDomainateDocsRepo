@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 namespace LiquidDocsNotify.Models;
 
 [BsonIgnoreExtraElements]
-
 public class TextMsg
 {
     [Key]

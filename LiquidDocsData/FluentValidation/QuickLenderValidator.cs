@@ -4,7 +4,6 @@ using LiquidDocsData.Models;
 
 namespace LiquidDocsData.FluentValidation;
 
-
 public class QuickLenderValidator : AbstractValidator<Lender>
 {
     public QuickLenderValidator()

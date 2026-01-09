@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LiquidDocsNotify.Enums;
-
+﻿namespace LiquidDocsNotify.Enums;
 
 public class EmailAttachmentEnums
 {
@@ -31,7 +24,5 @@ public class EmailAttachmentEnums
 
         [System.ComponentModel.Description("Zip File")]
         ZipFile
-                    
     }
-    
 }

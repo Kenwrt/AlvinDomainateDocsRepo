@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-
-using LiquidDocsData.Enums;
+using LiquidDocsData.Models.DTOs;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -17,7 +16,7 @@ public partial class QuickLoanAgreementViewModel : ObservableObject
     private ObservableCollection<LiquidDocsData.Models.LoanAgreement>? agreementList = new();
 
     [ObservableProperty]
-    private ObservableCollection<LiquidDocsData.Models.DocumentSet>? documentSets = new();
+    private ObservableCollection<LiquidDocsData.Models.DTOs.LoanTypeListDTO>? loanTypes = new();
 
     [ObservableProperty]
     private LiquidDocsData.Models.LoanAgreement editingAgreement = null;
@@ -43,10 +42,8 @@ public partial class QuickLoanAgreementViewModel : ObservableObject
 
         userId = userSession.UserId;
 
-      
-        
+        LoanTypes = new ObservableCollection<LiquidDocsData.Models.DTOs.LoanTypeListDTO>(dbApp.GetRecords<LiquidDocsData.Models.LoanType>().Select(x => new LoanTypeListDTO(x.Id, x.Name, x.Description, x.IconKey)));
     }
-
 
     [RelayCommand]
     private async Task InitializePage()
@@ -64,17 +61,18 @@ public partial class QuickLoanAgreementViewModel : ObservableObject
                 nextLoanNumber = AgreementList.Max(x => Convert.ToInt32(x.LoanNumber.Substring(8))); //"LN-2024-0";
             }
 
+          
 
-            DocumentSets.Clear();
+            //DocumentSets.Clear();
 
-            if (userSession.UserRole == UserEnums.Roles.Admin.ToString())
-            {
-                DocumentSets = new ObservableCollection<LiquidDocsData.Models.DocumentSet>(dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>());
-            }
-            else
-            {
-                DocumentSets = new ObservableCollection<LiquidDocsData.Models.DocumentSet>(dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>().Where(x => x.UserId == Guid.Parse(userId)));
-            }
+            //if (userSession.UserRole == UserEnums.Roles.Admin.ToString())
+            //{
+            //    DocumentSets = new ObservableCollection<LiquidDocsData.Models.DocumentSet>(dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>());
+            //}
+            //else
+            //{
+            //    DocumentSets = new ObservableCollection<LiquidDocsData.Models.DocumentSet>(dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>().Where(x => x.UserId == Guid.Parse(userId)));
+            //}
 
             await GenerateNewLoanNumberAsync();
         }
@@ -84,9 +82,6 @@ public partial class QuickLoanAgreementViewModel : ObservableObject
         }
     }
 
-   
-
-   
     [RelayCommand]
     private async Task UpsertRecord()
     {
@@ -94,37 +89,28 @@ public partial class QuickLoanAgreementViewModel : ObservableObject
 
         if (index > -1)
         {
-
             AgreementList[index] = EditingAgreement;
-
         }
         else
-        {             
+        {
             AgreementList.Add(EditingAgreement);
-        }   
+        }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.LoanAgreement>(EditingAgreement);
-
-
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.LoanAgreement r)
     {
-
         int recordListIndex = AgreementList.FindIndex(x => x.Id == r.Id);
 
         if (recordListIndex > -1)
         {
-
-           AgreementList.RemoveAt(recordListIndex);
-
+            AgreementList.RemoveAt(recordListIndex);
         }
 
         dbApp.DeleteRecord<LiquidDocsData.Models.LoanAgreement>(r);
-
     }
-    
 
     [RelayCommand]
     private void SelectAgreement(LiquidDocsData.Models.LoanAgreement r)
@@ -151,7 +137,6 @@ public partial class QuickLoanAgreementViewModel : ObservableObject
         EditingAgreement.LoanNumber = $"{loanNumberPrefix}{uniqueIdentifier}";
     }
 
-
     [RelayCommand]
     private void GetNewRecord()
     {
@@ -159,10 +144,7 @@ public partial class QuickLoanAgreementViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-
     }
 
     public decimal EstimatedDownPayment => Math.Round(EditingAgreement.PrincipalAmount * (EditingAgreement.DownPaymentPercentage / 100m), 2);
-
-    
 }

@@ -35,14 +35,14 @@
         }
         else
         {
-                <MudSelect Class="ml-4" T="LiquidDocsData.Models.DocumentSet" Style="background-color: white;" Variant="Variant.Outlined" Label="Select Document Set" @bind-Value="vm.EditingDocumentSet" Dense="true">
+               @*  <MudSelect Class="ml-4" T="LiquidDocsData.Models.DocumentSet" Style="background-color: white;" Variant="Variant.Outlined" Label="Select Document Set" @bind-Value="vm.EditingDocumentSet" Dense="true">
 
                     @foreach (var docSet in vm.DocumentSetList)
                     {
                         <MudSelectItem Style="background-color: white;" T="LiquidDocsData.Models.DocumentSet" Value="docSet">@docSet.Name</MudSelectItem>
                     }
 
-                </MudSelect>
+                </MudSelect> *@
                 
         }
 
@@ -83,6 +83,9 @@
             <MudItem md="4">
                     <MudButton Class="" OnClick="OnClearDocumentSelectionAsync" Color="Color.Secondary" Variant="Variant.Filled">Clear</MudButton>
             </MudItem>
+
+
+              
         </MudGrid>
                    
 
@@ -113,7 +116,7 @@
 
        
 
-        vm.EditingDocumentSet = null;
+        //vm.EditingDocumentSet = null;
 
         vm.SelectedDocument = null;
 
@@ -124,6 +127,16 @@
 
 
     }
+
+    // private void OnMoveDocument()
+    // {
+
+    //     vm.MoveDocumentsCommand.Execute(null);
+
+    //     StateHasChanged();
+
+
+    // }
 
     private async Task OnClearDocumentSelectionAsync()
     {

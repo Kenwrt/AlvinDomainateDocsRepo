@@ -1,16 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace LiquidDocsSite.Database;
 
 public interface IBaseRepository<T> where T : class
 {
     Task<T> UpsertAsync(T entity);
+
     Task<T?> GetByIdAsync(Guid id);
+
     Task<IEnumerable<T>> GetAllAsync();
+
     Task<IEnumerable<T>> GetByUserAsync(Guid userId);
+
     Task<bool> DeleteAsync(Guid id);
 }
 

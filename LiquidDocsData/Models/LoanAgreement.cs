@@ -18,11 +18,13 @@ public class LoanAgreement
 
     public Guid UserId { get; set; }
 
+    public UserProfile UserProfile { get; set; }
+
     public string? ReferenceName { get; set; }
 
     public string LoanNumber { get; set; }
 
-    public DocumentSet DocumentSet { get; set; }
+    public LoanType LoanType { get; set; }
 
     public decimal PrincipalAmount { get; set; } = 0;
 
@@ -48,12 +50,6 @@ public class LoanAgreement
     [DataType(DataType.Text)]
     public LiquidDocsData.Enums.Payment.Schedules RepaymentSchedule { get; set; } = LiquidDocsData.Enums.Payment.Schedules.Monthly;
 
-
-    [JsonConverter(typeof(StringEnumConverter))]
-    [BsonRepresentation(BsonType.String)]
-    [DataType(DataType.Text)]
-    public LiquidDocsData.Enums.Loan.Types LoanType { get; set; } = LiquidDocsData.Enums.Loan.Types.ConstructionOrRehab;
-
     [JsonConverter(typeof(StringEnumConverter))]
     [BsonRepresentation(BsonType.String)]
     [DataType(DataType.Text)]
@@ -63,7 +59,7 @@ public class LoanAgreement
     [BsonRepresentation(BsonType.String)]
     [DataType(DataType.Text)]
     public LiquidDocsData.Enums.Payment.PerDiemInterestOptions PerDiemOption { get; set; }
-    
+
     [JsonConverter(typeof(StringEnumConverter))]
     [BsonRepresentation(BsonType.String)]
     [DataType(DataType.Text)]
@@ -127,7 +123,7 @@ public class LoanAgreement
     public LoanServicer LoanServicer { get; set; } = new();
 
     public bool IsBalloonPayment { get; set; } = false;
-   
+
     public decimal ExitFeeAmount { get; set; }
 
     public bool IsConditionalRightToExtend { get; set; } = false;
@@ -191,6 +187,8 @@ public class LoanAgreement
     public string DocumentTitle { get; set; }
 
     public List<Lender> Lenders { get; set; } = new();
+
+    public bool IsConstructionAssignments { get; set; }
 
     public List<ConstructionContract> ConstructionContractors { get; set; } = new();
 

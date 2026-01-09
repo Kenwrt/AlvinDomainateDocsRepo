@@ -1,0 +1,267 @@
+﻿@page "/quickloanagreementnewlook"
+@using MudBlazor
+
+@using System.Globalization
+
+@inject NavigationManager Nav
+@inject QuickLoanAgreementViewModel vm
+@inject QuickLoanAgreementValidator loanValidator
+@inject UserSession Session
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-10">
+
+    <!-- HEADER -->
+    <div class="d-flex flex-column align-center text-center">
+        <MudText Typo="Typo.h3">Create Loan Documents</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-2">
+            Three quick steps to generate your documents
+        </MudText>
+
+        <!-- REAL STEPPER (CENTERED) -->
+        <MudStepper Class="mt-6 wizard-stepper"
+                    Linear="true"
+                    AlternativeLabel="true"
+                    @bind-ActiveIndex="ActiveStep"
+                    Elevation="0">
+
+            <MudStep Text="Loan Type" />
+            <MudStep Text="Details" />
+            <MudStep Text="Generate" />
+        </MudStepper>
+    </div>
+
+    <!-- MAIN CARD -->
+    <MudPaper Elevation="0"
+              Class="mx-auto mt-10"
+              Style="max-width: 920px; border-radius: 16px; border: 1px solid var(--mud-palette-lines-default); overflow: hidden;">
+
+        @* STEP 1 *@
+        @if (ActiveStep == 0)
+        {
+            <div class="pa-7">
+                <MudText Typo="Typo.h6">What type of loan is this?</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                    Select the loan type to load the right document package.
+                </MudText>
+
+                <MudGrid Class="mt-6" GutterSize="3">
+
+                    <MudTextField Class="" Style="background-color: white;" Variant="Variant.Outlined" @bind-Value="vm.EditingAgreement.ReferenceName" For="@(() => vm.EditingAgreement.ReferenceName)" Label="Give your Project a name!" Required="true" />
+
+                    @foreach (var type in vm.LoanTypes)
+                    {
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0"
+                                      Class="rounded-lg"
+                                      Style="@GetTileStyle(SelectedLoanType == type.Name)"
+                                      @onclick="() => vm.EditingAgreement.LoanType.Id = type.Id">
+                                <div class="d-flex flex-column align-center justify-center"
+                                     style="height: 120px; padding: 18px;">
+                                    <MudAvatar Variant="Variant.Outlined"
+                                               Size="Size.Large"
+                                               Color="Color.Default"
+                                               Class="mb-3">
+                                        <MudIcon Icon="@ResolveIcon(type.IconKey)" />
+                                    </MudAvatar>
+
+                                    <MudText Typo="Typo.subtitle2">@type.Name</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                                        @type.Description
+                                    </MudText>
+                                </div>
+                            </MudPaper>
+                        </MudItem>
+                    }
+
+
+
+
+
+
+
+                    @foreach (var type in LoanTypes)
+                    {
+                        <MudItem xs="12" sm="6" md="4">
+                            <MudPaper Elevation="0"
+                                      Class="rounded-lg"
+                                      Style="@GetTileStyle(SelectedLoanType == type.Value)"
+                                      @onclick="() => SelectedLoanType = type.Value">
+                                <div class="d-flex flex-column align-center justify-center"
+                                     style="height: 120px; padding: 18px;">
+                                    <MudAvatar Variant="Variant.Outlined"
+                                               Size="Size.Large"
+                                               Color="Color.Default"
+                                               Class="mb-3">
+                                        <MudIcon Icon="@type.Icon" />
+                                    </MudAvatar>
+
+                                    <MudText Typo="Typo.subtitle2">@type.Label</MudText>
+                                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                                        @type.Description
+                                    </MudText>
+                                </div>
+                            </MudPaper>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </div>
+
+            <div class="px-7 py-5 d-flex align-center justify-end"
+                 style="border-top: 1px solid var(--mud-palette-lines-default); background: rgba(0,0,0,0.01);">
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Dark"
+                           Disabled="@(!CanGoNext)"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           OnClick="NextFromLoanType"
+                           Class="rounded-lg"
+                           Style="min-width: 120px;">
+                    Next
+                </MudButton>
+            </div>
+        }
+
+        @* STEP 2 *@
+        else if (ActiveStep == 1)
+        {
+            <div class="pa-7">
+                <MudText Typo="Typo.h6">Details</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                    Add the details needed to generate the correct document package.
+                </MudText>
+
+                <!-- Placeholder content. Replace with your real fields. -->
+                <MudGrid Class="mt-6" GutterSize="3">
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="Borrower Name" Variant="Variant.Outlined" Dense="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="Property Address" Variant="Variant.Outlined" Dense="true" />
+                    </MudItem>
+                </MudGrid>
+            </div>
+
+            <div class="px-7 py-5 d-flex align-center justify-space-between"
+                 style="border-top: 1px solid var(--mud-palette-lines-default); background: rgba(0,0,0,0.01);">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Dark"
+                           StartIcon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="Back">
+                    Back
+                </MudButton>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Dark"
+                           EndIcon="@Icons.Material.Filled.ArrowForward"
+                           OnClick="Next">
+                    Next
+                </MudButton>
+            </div>
+        }
+
+        @* STEP 3 *@
+        else
+        {
+            <div class="pa-7">
+                <MudText Typo="Typo.h6">Generate</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                    Confirm your selections and generate the document set.
+                </MudText>
+
+                <MudPaper Class="mt-6 pa-4" Elevation="0"
+                          Style="border: 1px solid var(--mud-palette-lines-default); border-radius: 12px;">
+                    <MudText Typo="Typo.subtitle2">Selected Loan Type</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@SelectedLoanType</MudText>
+                </MudPaper>
+            </div>
+
+            <div class="px-7 py-5 d-flex align-center justify-space-between"
+                 style="border-top: 1px solid var(--mud-palette-lines-default); background: rgba(0,0,0,0.01);">
+                <MudButton Variant="Variant.Outlined"
+                           Color="Color.Dark"
+                           StartIcon="@Icons.Material.Filled.ArrowBack"
+                           OnClick="Back">
+                    Back
+                </MudButton>
+
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Dark"
+                           EndIcon="@Icons.Material.Filled.PlayArrow"
+                           OnClick="Generate">
+                    Generate
+                </MudButton>
+            </div>
+        }
+    </MudPaper>
+</MudContainer>
+
+<style>
+    /* Keeps the stepper looking like your centered three-step header */
+    .wizard-stepper {
+        width: 520px;
+        max-width: 90vw;
+    }
+
+    /* Optional: tighten the stepper spacing a bit */
+    .wizard-stepper .mud-stepper-horizontal {
+        justify-content: center;
+    }
+</style>
+
+@code {
+
+    private int ActiveStep { get; set; } = 0;
+
+    private string? SelectedLoanType { get; set; }
+    private bool CanGoNext => !string.IsNullOrWhiteSpace(SelectedLoanType);
+
+    private readonly List<(string Value, string Label, string Description, string Icon)> LoanTypes = new()
+    {
+        ("ConstructionRehab", "Construction / Rehab", "Draw-based funding",            Icons.Material.Filled.Inventory2),
+        ("BridgeFixFlip",     "Bridge / Fix & Flip",  "Short-term acquisition",        Icons.Material.Filled.HomeWork),
+        ("DSCRRental",        "DSCR / Rental",        "Long-term investment",          Icons.Material.Filled.CreditCard),
+        ("Commercial",        "Commercial",           "Office, retail, industrial",    Icons.Material.Filled.Apartment),
+        ("Multifamily",       "Multifamily",          "5+ unit residential",           Icons.Material.Filled.Group),
+        ("LandLot",           "Land / Lot",           "Raw land financing",            Icons.Material.Filled.Layers),
+    };
+
+    private static string GetTileStyle(bool selected)
+        => selected
+            ? "cursor:pointer; border: 1px solid rgba(20, 50, 255, 0.35); background: rgba(20, 50, 255, 0.04); border-radius: 14px;"
+            : "cursor:pointer; border: 1px solid var(--mud-palette-lines-default); background: var(--mud-palette-surface); border-radius: 14px;";
+
+    private void NextFromLoanType()
+    {
+        if (!CanGoNext) return;
+        ActiveStep = 1;
+    }
+
+    private void Next()
+    {
+        if (ActiveStep < 2)
+            ActiveStep++;
+    }
+
+    private void Back()
+    {
+        if (ActiveStep > 0)
+            ActiveStep--;
+    }
+
+    private static string ResolveIcon(string? key) => key switch
+    {
+        "Inventory2" => Icons.Material.Filled.Inventory2,
+        "HomeWork" => Icons.Material.Filled.HomeWork,
+        "CreditCard" => Icons.Material.Filled.CreditCard,
+        "Apartment" => Icons.Material.Filled.Apartment,
+        "Group" => Icons.Material.Filled.Group,
+        "Layers" => Icons.Material.Filled.Layers,
+        _ => Icons.Material.Filled.HelpOutline
+    };
+
+    private void Generate()
+    {
+        // Hook this to your actual doc generation pipeline.
+        // e.g. vm.GenerateDocumentsCommand.Execute(null);
+    }
+}

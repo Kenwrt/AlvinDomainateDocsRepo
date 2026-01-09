@@ -62,8 +62,6 @@ public partial class DocumentLibraryViewModel : ObservableObject
     [RelayCommand]
     private async Task UpsertLibrary()
     {
-       
-
         if (EditingLibrary.MasterTemplateBytes is null)
         {
             EditingLibrary.MasterTemplate = options.Value.MasterTemplate;
@@ -181,7 +179,7 @@ public partial class DocumentLibraryViewModel : ObservableObject
     {
         EditingLibrary = new LiquidDocsData.Models.DocumentLibrary()
         {
-            UserId = Guid.Parse(userId)
+           
         };
 
         return EditingLibrary;

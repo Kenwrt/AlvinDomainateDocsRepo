@@ -27,31 +27,20 @@ public class UserProfile
 
     public string ConfirmedPassword { get; set; }
 
-    public string? Name { get; set; }
-
-    public string? DateOfBirth { get; set; }
-
-    public string? PhoneNumber { get; set; }
-
-    public string Email { get; set; }
-
-    public string? StreetAddress { get; set; }
-
-    public string? City { get; set; }
-
-    public string? State { get; set; }
-
-    public string? ZipCode { get; set; }
-
     public string? ProfilePictureUrl { get; set; }
 
     [JsonConverter(typeof(StringEnumConverter))]
     [BsonRepresentation(BsonType.String)]
     public UserEnums.Roles UserRole { get; set; }
 
-    public List<LoanAgreement>? LoanAgreementList { get; set; } = new();
+    public UserDefaultProfile UserDefaultProfile { get; set; } = new();
 
+
+    public List<Guid> LoanAgreementGuids { get; set; } = new();
+       
     public CreditCardSubscription? CreditCardSubscriotion { get; set; } = new();
 
     public List<ChargingAuditTrail>? CharingAuditTrails { get; set; } = new();
+
+
 }

@@ -1,4 +1,3 @@
-using DocumentFormat.OpenXml.Wordprocessing;
 using DocumentManager;
 using FluentValidation;
 using GemBox.Document;
@@ -6,7 +5,6 @@ using LiquidDocsData.FluentValidation;
 using LiquidDocsNotify;
 using LiquidDocsSite.Components;
 using LiquidDocsSite.Components.Account;
-using LiquidDocsSite.Components.Account.Pages;
 using LiquidDocsSite.Data;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Endpoints;
@@ -26,6 +24,7 @@ using MongoDB.Driver;
 using MudBlazor.Services;
 using Serilog;
 using Serilog.Events;
+using StripeBillingManager;
 using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -95,7 +94,6 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = IdentityConstants.ApplicationScheme;
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-       
 })
     //.AddCookie();
     .AddCookie(IdentityConstants.ApplicationScheme, o =>
@@ -207,7 +205,7 @@ builder.Services.TryAddSingleton<QuickGuarantorValidator>();
 builder.Services.TryAddSingleton<QuickLenderValidator>();
 builder.Services.TryAddSingleton<QuickPropertyValidator>();
 builder.Services.TryAddSingleton<DocumentLibraryValidator>();
-builder.Services.TryAddSingleton<DocumentSetValidator>();
+//builder.Services.TryAddSingleton<DocumentSetValidator>();
 builder.Services.TryAddSingleton<DocumentValidator>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<AliasValidator>();
@@ -230,7 +228,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<QuickGuarantorValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<QuickLenderValidator>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<DocumentLibraryValidator>();
-builder.Services.AddValidatorsFromAssemblyContaining<DocumentSetValidator>();
+//builder.Services.AddValidatorsFromAssemblyContaining<DocumentSetValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<DocumentValidator>();
 
 builder.Services.TryAddSingleton<IEmailSender<LiquidDocsSite.Data.ApplicationUser>, IdentityNoOpEmailSender>();
@@ -263,31 +261,27 @@ builder.Services.TryAddScoped<SigningAuthorityViewModel>();
 builder.Services.TryAddScoped<LoanAgreementViewModel>();
 builder.Services.TryAddScoped<TestMergeViewModel>();
 builder.Services.TryAddScoped<ContactUsViewModel>();
-
+builder.Services.TryAddScoped<LoanTypeViewModel>();
+builder.Services.TryAddScoped<LoanTypeListViewModel>();
 builder.Services.TryAddScoped<DashboardViewModel>();
-
 builder.Services.TryAddScoped<QuickBorrowerViewModel>();
 builder.Services.TryAddScoped<QuickBrokerViewModel>();
 builder.Services.TryAddScoped<QuickGuarantorViewModel>();
 builder.Services.TryAddScoped<QuickLenderViewModel>();
 builder.Services.TryAddScoped<QuickPropertyViewModel>();
 builder.Services.TryAddScoped<QuickLoanAgreementViewModel>();
+builder.Services.TryAddScoped<UserDefaultProfileViewModel>();
 
 
 //Mongo Stuff
 BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
 
-
 var baseConn = encrypt.Decrypt(builder.Configuration.GetConnectionString("AtlasMongoConnection"))
                       ?? encrypt.Decrypt(builder.Configuration.GetConnectionString("AtlasMongoConnection"));
-
 
 var connWithUuid = baseConn.Contains("uuidRepresentation=", StringComparison.OrdinalIgnoreCase)
     ? baseConn
     : $"{baseConn}{(baseConn.Contains("?") ? "&" : "?")}uuidRepresentation=standard";
-
-
-
 
 builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(connWithUuid));
 builder.Services.AddSingleton<IMongoDatabaseRepo, MongoDatabaseRepo>();
@@ -315,6 +309,17 @@ builder.Services.AddNotifyServices(options =>
     options.IsHousekeeperActive = builder.Configuration.GetValue<bool>("NotifyServices:IsHousekeeperActive");
     options.IsActive = builder.Configuration.GetValue<bool>("NotifyServices:IsActive");
     options.HouseKeepingIntervalMin = builder.Configuration.GetValue<int>("NotifyServices:HouseKeepingIntervalMin");
+});
+
+builder.Services.AddStripeBillingManagerServices(options =>
+{
+    options.APIKey = builder.Configuration.GetValue<string>("StripeBillingManager:APIKey")?.Trim();
+    options.WebhookSigning = builder.Configuration.GetValue<string>("StripeBillingManager:WebhookSigning")?.Trim();
+    options.IsRunBackgroundBillingService = builder.Configuration.GetValue<bool>("StripeBillingManager:IsRunBackgroundEmailService");
+    options.MaxBillingThreads = builder.Configuration.GetValue<int>("StripeBillingManager:MaxBillingThreads");
+    options.IsHousekeeperActive = builder.Configuration.GetValue<bool>("StripeBillingManager:IsHousekeeperActive");
+    options.IsActive = builder.Configuration.GetValue<bool>("StripeBillingManager:IsActive");
+    options.HouseKeepingIntervalMin = builder.Configuration.GetValue<int>("StripeBillingManager:HouseKeepingIntervalMin");
 });
 
 var aes = new EncryptAes();
@@ -397,7 +402,6 @@ app.MapAdditionalIdentityEndpoints();
 //{
 //    await SeedRoles(scope.ServiceProvider);
 //}
-
 
 app.Run();
 

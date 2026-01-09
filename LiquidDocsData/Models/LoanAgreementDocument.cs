@@ -3,8 +3,6 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace LiquidDocsData.Models;
@@ -43,7 +41,7 @@ public class LoanAgreementDocument
     public List<PropertyRecord> Properties { get; set; } = new();
     public List<Lien> Liens { get; set; } = new();
 
-    public List<DocumentSet> DocumentSets { get; set; } = new();
+    //   public List<DocumentSet> DocumentSets { get; set; } = new();
 
     public string? RawSnapshotJson { get; set; }
 }

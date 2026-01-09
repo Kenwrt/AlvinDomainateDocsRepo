@@ -1,10 +1,11 @@
 ﻿public class UserSession
 {
-    public string? UserId { get; set; }
-    public string? UserName { get; set; }
-    public string? Password { get; set; }
-    public string? UserRole { get; set; }
-    public string? UserPolicy { get; set; }
-    public string? SessionId { get; set; }
+    public string UserId { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string UserRole { get; set; } = string.Empty;
+    public string UserPolicy { get; set; } = string.Empty;
+    public string SessionId { get; set; } = string.Empty;
+    public Guid DocLibId { get; set; } = Guid.Empty;
     public DateTimeOffset ExpUtc { get; set; }
 }

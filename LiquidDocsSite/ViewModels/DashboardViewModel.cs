@@ -14,8 +14,8 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<LiquidDocsData.Models.LoanAgreement>? agreementList = new();
 
-    [ObservableProperty]
-    private ObservableCollection<LiquidDocsData.Models.DocumentSet>? documentSets = new();
+    //[ObservableProperty]
+    //private ObservableCollection<LiquidDocsData.Models.DocumentSet>? documentSets = new();
 
     [ObservableProperty]
     private LiquidDocsData.Models.LoanAgreement editingAgreement = null;
@@ -52,9 +52,6 @@ public partial class DashboardViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-
-       
-                   
     }
 
     [RelayCommand]
@@ -69,9 +66,7 @@ public partial class DashboardViewModel : ObservableObject
             AgreementList = dbApp.GetRecords<LiquidDocsData.Models.LoanAgreement>().Where(x => x.UserId == Guid.Parse(userId)).ToObservableCollection();
         }
 
-
-        DocumentSets = new ObservableCollection<LiquidDocsData.Models.DocumentSet>(dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>().Where(x => x.UserId == Guid.Parse(userSession.UserId)));
-
+        //  DocumentSets = new ObservableCollection<LiquidDocsData.Models.DocumentSet>(dbApp.GetRecords<LiquidDocsData.Models.DocumentSet>().Where(x => x.UserId == Guid.Parse(userSession.UserId)));
 
         if (userSession.UserRole == UserEnums.Roles.Admin.ToString() || userSession.UserRole == UserEnums.Roles.DevAdmin.ToString())
         {
@@ -116,15 +111,13 @@ public partial class DashboardViewModel : ObservableObject
 
             if (index > -1)
             {
-
                 AgreementList.RemoveAt(index);
-
             }
             else
             {
                 AgreementList.Add(r);
             }
-            
+
             dbApp.UpSertRecord<LiquidDocsData.Models.LoanAgreement>(r);
         }
         catch (Exception ex)
@@ -140,9 +133,7 @@ public partial class DashboardViewModel : ObservableObject
 
         if (index > -1)
         {
-
             AgreementList[index] = r;
-
         }
         else
         {
@@ -156,21 +147,18 @@ public partial class DashboardViewModel : ObservableObject
 
     [RelayCommand]
     private void DeleteAgreement(LiquidDocsData.Models.LoanAgreement r)
-    { 
+    {
         int index = AgreementList.FindIndex(x => x.Id == r.Id);
 
         if (index > -1)
         {
-
             AgreementList.RemoveAt(index);
-
         }
 
         dbApp.DeleteRecord<LiquidDocsData.Models.LoanAgreement>(r);
 
         SelectedAgreement = null;
         EditingAgreement = GetNewRecord();
-        
     }
 
     [RelayCommand]

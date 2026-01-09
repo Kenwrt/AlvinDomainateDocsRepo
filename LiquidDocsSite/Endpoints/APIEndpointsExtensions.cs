@@ -6,14 +6,12 @@ using DocumentManager.Services;
 using LiquidDocsData.Models;
 using LiquidDocsSite.Database;
 using Newtonsoft.Json;
-using Nextended.Core.DeepClone;
 
 namespace LiquidDocsSite.Endpoints;
 
 public static class ApiEndpointsExtensions
 {
     private static string webPath = "";
-    
 
     public static void AddApiEndpointsServices(this IServiceCollection services, IConfiguration config, Action<ApiConfigOptions>? options = null)
     {
@@ -199,10 +197,15 @@ public static class ApiEndpointsExtensions
 
             Document docTemp = dbApp.GetRecordById<Document>(documentTag.DocumentId);
 
-            if (docTemp is null)
-                return Results.NotFound($"Document with ID {documentTag.DocumentId} not found.");
+            if (docTemp is null) return Results.NotFound($"Document with ID {documentTag.DocumentId} not found.");
 
-            docTemp.TemplateDocumentBytes = bytes;
+            DocumentStore docStore = dbApp.GetRecordById<DocumentStore>(docTemp.DocStoreId);
+
+            docStore.DocumentBytes = bytes;
+
+            docStore.UpdatedAt = System.DateTime.UtcNow;
+
+            dbApp.UpSertRecord<DocumentStore>(docStore);
 
             docTemp.UpdatedAt = System.DateTime.UtcNow;
 
@@ -223,9 +226,11 @@ public static class ApiEndpointsExtensions
             // Await the task to get the result of the asynchronous operation
             var documentRecord = dbApp.GetRecordById<Document>(documentId);
 
+            DocumentStore documentStore = dbApp.GetRecordById<DocumentStore>(documentRecord.DocStoreId);
+
             string fileName = $"{documentRecord.Name}--{documentId.ToString().Substring(0, 12)}--{System.DateTime.UtcNow.ToString("MM-dd-yyyy-HH-MM")}.docm";
 
-            byte[] documentBytes = documentRecord.TemplateDocumentBytes;
+            byte[] documentBytes = documentStore.DocumentBytes;
 
             if (documentBytes == null)
                 return Results.NotFound();
@@ -249,7 +254,9 @@ public static class ApiEndpointsExtensions
 
             string fileName = $"{documentId.ToString()}.docm";
 
-            byte[] documentBytes = documentRecord.TemplateDocumentBytes;
+            DocumentStore documentStore = dbApp.GetRecordById<DocumentStore>(documentRecord.DocStoreId);
+
+            byte[] documentBytes = documentStore.DocumentBytes;
 
             if (documentBytes == null)
                 return Results.NotFound();

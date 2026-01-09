@@ -1,0 +1,582 @@
+﻿@page "/UserDefaultProfile"
+@using MudBlazor
+
+@inject NavigationManager Nav
+@inject UserDefaultProfileViewModel vm
+
+@inject UserSession Session
+
+<MudContainer MaxWidth="MaxWidth.False" Class="pa-0">
+    <MudGrid Class="ma-0" Style="min-height: 100vh; background-color: var(--mud-palette-background);">
+
+        <!-- LEFT SIDEBAR (CUSTOM VERTICAL STEPPER) -->
+        <MudItem xs="12" md="3" lg="2" Class="pa-0">
+            <MudPaper Square="true"
+                      Elevation="0"
+                      Class="h-100"
+                      Style="border-right: 1px solid var(--mud-palette-lines-default); background: var(--mud-palette-surface);">
+
+                <div class="pa-4">
+                    <MudText Typo="Typo.h5" Class="sidebar-title">My Profiles</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                        Build a loan project using your saved defaults.
+                    </MudText>
+                </div>
+
+                <div class="px-4 pb-2">
+                    <MudText Typo="Typo.overline" Color="Color.Secondary">Loan Wizard</MudText>
+                </div>
+
+                <MudList T="string" Dense="true" Class="px-2">
+                    @foreach (var item in Steps.Select((s, idx) => new { Step = s, Index = idx }))
+                    {
+                        // CRITICAL: capture into a local var so Razor/closures can't "help"
+                        var stepIndex = item.Index;
+                        var step = item.Step;
+
+                        <MudListItem Class="@GetStepRowClass(stepIndex)"
+                                     @onclick="() => GoToStep(stepIndex)">
+                            <div class="d-flex align-center" style="width:100%;">
+
+                                <MudAvatar Size="Size.Small"
+                                           Variant="Variant.Filled"
+                                           Color="@GetStepBubbleColor(stepIndex)"
+                                           Class="mr-3">
+
+                                    @if (stepIndex < ActiveStep)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                                    }
+                                    else
+                                    {
+                                        <span class="step-num">@((stepIndex + 1).ToString())</span>
+                                    }
+                                </MudAvatar>
+
+                                <div class="d-flex flex-column" style="min-width: 0;">
+                                    <MudText Typo="Typo.body2" Class="@GetStepTitleClass(stepIndex)">
+                                        @step.Title
+                                    </MudText>
+                                    <MudText Typo="Typo.caption" Class="@GetStepHintClass(stepIndex)">
+                                        @step.Hint
+                                    </MudText>
+                                </div>
+                            </div>
+                        </MudListItem>
+
+                        @if (stepIndex < Steps.Count - 1)
+                        {
+                            <div class="ml-6 my-1"
+                                 style="height: 18px; border-left: 2px solid var(--mud-palette-lines-default); opacity: .7;"></div>
+                        }
+                    }
+                </MudList>
+
+                <div class="px-4 pt-3">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        Progress: @(ActiveStep + 1) / @Steps.Count
+                    </MudText>
+                    <MudProgressLinear Class="mt-2"
+                                       Color="Color.Dark"
+                                       Value="@(((ActiveStep + 1) * 100.0) / Steps.Count)" />
+                </div>
+
+                <div class="px-4 pt-4 pb-4 d-flex flex-column gap-2">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Dark"
+                               Disabled="@(ActiveStep == 0)"
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               OnClick="PrevStep">
+                        Back
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Dark"
+                               Disabled="@(ActiveStep >= Steps.Count - 1)"
+                               EndIcon="@Icons.Material.Filled.ArrowForward"
+                               OnClick="NextStep">
+                        Next
+                    </MudButton>
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <!-- MAIN CONTENT -->
+        <MudItem xs="12" md="9" lg="10" Class="pa-0">
+            <MudContainer MaxWidth="MaxWidth.Medium" Class="py-10 px-6">
+
+                @switch (ActiveStep)
+                {
+                    case 0:
+                        @ProjectBasicsStep()
+                        break;
+
+                    case 1:
+                        @PlaceholderStep("Loan Terms",
+                            "Enter principal, interest rate, term, payment schedule, and any fees.")
+                        break;
+
+                    case 2:
+                        @PlaceholderStep("Property",
+                            "Enter property address, type, value, and any lien/insurance requirements.")
+                        break;
+
+                    case 3:
+                        @PlaceholderStep("Lender (Optional)",
+                            "Use your saved lender profile or override for this project.")
+                        break;
+
+                    case 4:
+                        @PlaceholderStep("Borrower (Optional)",
+                            "Add borrower entity information and signing authority.")
+                        break;
+
+                    case 5:
+                        @PlaceholderStep("Broker (Optional)",
+                            "Add broker contact and compensation/fee rules.")
+                        break;
+
+                    case 6:
+                        @PlaceholderStep("Guarantor (Optional)",
+                            "Add personal/corporate guarantor details and scope of guaranty.")
+                        break;
+
+                    case 7:
+                        @PlaceholderStep("Review & Generate",
+                            "Confirm everything, then generate the document package.")
+                        break;
+                }
+
+                <!-- FOOTER ACTIONS (Always visible) -->
+                <div class="d-flex align-center justify-space-between mt-8">
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Default"
+                               StartIcon="@Icons.Material.Filled.ArrowBack"
+                               OnClick="Cancel">
+                        Cancel
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Dark"
+                               EndIcon="@Icons.Material.Filled.ArrowForward"
+                               Disabled="@(!CanContinue)"
+                               OnClick="ContinueToLoanDetails">
+                        Continue to Loan Details
+                    </MudButton>
+                </div>
+
+            </MudContainer>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    // Step state
+    private int ActiveStep { get; set; } = 0;
+
+    private record WizardStep(string Title, string Hint);
+
+    private readonly List<WizardStep> Steps = new()
+    {
+        new("Project Basics",       "Name the project and select loan type"),
+        new("Loan Terms",           "Principal, rate, term, payment schedule"),
+        new("Property",             "Address, property type, valuation, liens"),
+        new("Lender (Optional)",    "Use profile or override lender details"),
+        new("Borrower (Optional)",  "Borrower entity + signing authority"),
+        new("Broker (Optional)",    "Broker contact + compensation rules"),
+        new("Guarantor (Optional)", "Personal/corporate guaranty details"),
+        new("Review & Generate",    "Confirm everything and produce documents")
+    };
+
+    // ===== Your existing state (unchanged) =====
+    private string ProjectName { get; set; } = "";
+    private string SelectedRole { get; set; } = "Lender";
+    private string SelectedLoanType { get; set; } = "ConstructionRehab";
+    private bool UseProfileCompanyAsLender { get; set; } = true;
+
+    private string DefaultCompanyName { get; set; } = "Geraci LLP";
+    private string DefaultPhone { get; set; } = "(949) 379-2600";
+    private string DefaultAddress { get; set; } = "90 Discovery, Irvine, CA 92618";
+
+    private HashSet<string> SelectedLicensedStates { get; set; } = new() { "California", "Nevada", "Arizona", "Texas" };
+
+    private bool CanContinue =>
+        !string.IsNullOrWhiteSpace(ProjectName) &&
+        !string.IsNullOrWhiteSpace(SelectedRole) &&
+        !string.IsNullOrWhiteSpace(SelectedLoanType);
+
+    private List<(string Value, string Label, string Icon)> Roles { get; } = new()
+    {
+        ("Lender",  "Lender",  Icons.Material.Filled.AccountBalance),
+        ("Broker",  "Broker",  Icons.Material.Filled.Handshake),
+        ("Servicer","Servicer",Icons.Material.Filled.VerifiedUser),
+        ("Other",   "Other",   Icons.Material.Filled.HelpOutline),
+    };
+
+    private List<(string Value, string Label, string Description, string Icon)> LoanTypes { get; } = new()
+    {
+        ("ConstructionRehab", "Construction / Rehab", "Draw-based funding for new builds or renovations", Icons.Material.Filled.Construction),
+        ("BridgeFixFlip",     "Bridge / Fix & Flip",  "Short-term financing for acquisitions",           Icons.Material.Filled.HomeWork),
+        ("DSCRRental",        "DSCR / Rental",        "Long-term investment property loans",            Icons.Material.Filled.Apartment),
+        ("Commercial",        "Commercial",           "Office, retail, industrial properties",          Icons.Material.Filled.Domain),
+        ("Multifamily",       "Multifamily",          "5+ unit residential properties",                 Icons.Material.Filled.LocationCity),
+        ("LandLot",           "Land / Lot",           "Raw land or subdivision financing",             Icons.Material.Filled.Terrain),
+    };
+
+    private List<string> AllStates { get; } = new()
+    {
+        "California", "Nevada", "Arizona", "Texas"
+    };
+
+    // ===== Navigation =====
+    private void GoToStep(int stepIndex)
+    {
+        if (stepIndex < 0 || stepIndex >= Steps.Count) return;
+        ActiveStep = stepIndex;
+    }
+
+    private void NextStep()
+    {
+        if (ActiveStep < Steps.Count - 1) ActiveStep++;
+    }
+
+    private void PrevStep()
+    {
+        if (ActiveStep > 0) ActiveStep--;
+    }
+
+    // ===== Sidebar visual helpers =====
+    private Color GetStepBubbleColor(int stepIndex)
+    {
+        if (stepIndex < ActiveStep) return Color.Success;
+        if (stepIndex == ActiveStep) return Color.Dark;
+        return Color.Default;
+    }
+
+    private string GetStepRowClass(int stepIndex)
+        => stepIndex == ActiveStep ? "step-row step-row-active" : "step-row";
+
+    private string GetStepTitleClass(int stepIndex)
+        => stepIndex == ActiveStep ? "step-title-active" : "";
+
+    private string GetStepHintClass(int stepIndex)
+        => stepIndex == ActiveStep ? "step-hint step-hint-active" : "step-hint";
+
+    // ===== Licensed states =====
+    private void OnLicensedStatesChanged(IReadOnlyCollection<string> values)
+        => SelectedLicensedStates = values?.ToHashSet() ?? new HashSet<string>();
+
+    private void RemoveState(string st)
+    {
+        SelectedLicensedStates.Remove(st);
+        AllStates.Remove(st);
+    }
+
+    private void RoleDetails()
+    {
+        // SelectedLicensedStates.Remove(st);
+        // AllStates.Remove(st);
+    }
+
+    private void AddState()
+    {
+        var candidate = "New State";
+        if (!AllStates.Contains(candidate))
+            AllStates.Add(candidate);
+
+        SelectedLicensedStates.Add(candidate);
+    }
+
+    private void OnLenderComplete(List<LiquidDocsData.Models.Lender> lendeList)
+    {
+        // vm.EditingAgreement.Lenders.Clear();
+        // vm.EditingAgreement.Lenders = lendeList;
+        // vm.UpsertRecordCommand.Execute(null);
+
+    }
+
+    private void OnGuarantorComplete(List<LiquidDocsData.Models.Guarantor> guarantorList)
+    {
+        // vm.EditingAgreement.Guarantors.Clear();
+        // vm.EditingAgreement.Guarantors = guarantorList;
+        // vm.UpsertRecordCommand.Execute(null);
+
+    }
+
+    private void OnBrokerComplete(List<LiquidDocsData.Models.Broker> brokerList)
+    {
+
+        // vm.EditingAgreement.Brokers.Clear();
+        // vm.EditingAgreement.Brokers = brokerList;
+        // vm.UpsertRecordCommand.Execute(null);
+    }
+
+    private async Task OnBorrowerCompleteAsync(List<LiquidDocsData.Models.Borrower> borrowerList)
+    {
+        // vm.EditingAgreement.Borrowers.Clear();
+
+        // vm.EditingAgreement.Borrowers = borrowerList;
+
+        // vm.UpsertRecordCommand.Execute(null);
+    }
+
+    private void OnBorrowerCanceled()
+    {
+
+    }
+
+    private void OnGuarantorCanceled()
+    {
+
+    }
+
+    private void OnBrokerCanceled()
+    {
+
+    }
+
+    private void OnLenderCanceled()
+    {
+
+    }
+
+    private void OnPropertyAddressComplete(List<AddressDTO> addressList)
+    {
+        // if (vm.EditingAgreement.Properties is not null)
+        // {
+        //     vm.EditingAgreement.Properties.Clear();
+        // }
+
+        // foreach (var p in addressList)
+        // {
+        //     PropertyRecord propertyRecord = new()
+        //     {
+        //         FullAddress = p.FullAddress,
+        //         StreetAddress = p.StreetAddress,
+        //         City = p.City,
+        //         ZipCode = p.ZipCode,
+        //         County = p.County,
+        //         Country = p.Country,
+        //         Lat = p.Lat,
+        //         Lng = p.Lng
+        //     };
+
+        //     if (!vm.EditingAgreement.Properties.Any(x => x.FullAddress != p.FullAddress))
+        //     {
+        //         vm.EditingAgreement.Properties.Add(propertyRecord);
+        //     }
+        // }
+
+        // vm.UpsertRecordCommand.Execute(null);
+    }
+
+    private static string ResolveIcon(string? key) => key switch
+    {
+        "Inventory2" => Icons.Material.Filled.Inventory2,
+        "HomeWork" => Icons.Material.Filled.HomeWork,
+        "CreditCard" => Icons.Material.Filled.CreditCard,
+        "Apartment" => Icons.Material.Filled.Apartment,
+        "Group" => Icons.Material.Filled.Group,
+        "Layers" => Icons.Material.Filled.Layers,
+        _ => Icons.Material.Filled.HelpOutline
+    };
+
+    // ===== Tile helpers =====
+    private static string GetTileClass(bool selected)
+        => $"rounded-lg {(selected ? "tile-selected" : "tile")}";
+
+    private static string GetTileStyle(bool selected)
+        => selected
+            ? "cursor:pointer; border:1px solid rgba(255,0,80,0.55); background: rgba(255,0,80,0.05);"
+            : "cursor:pointer; border:1px solid var(--mud-palette-lines-default); background: var(--mud-palette-surface);";
+
+    // ===== Footer actions =====
+    private void Cancel()
+    {
+        // hook to NavManager if you want
+        // Nav.NavigateTo("/dashboard");
+    }
+
+    private void ContinueToLoanDetails()
+    {
+        // hook to NavManager if you want
+        // Nav.NavigateTo("/loan/new/loan-details");
+    }
+
+    // ===== RenderFragments =====
+    private RenderFragment PlaceholderStep(string title, string body) => __builder =>
+    {
+        <MudText Typo="Typo.h3">@title</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">@body</MudText>
+
+        <MudPaper Class="mt-6 pa-6" Elevation="0"
+                  Style="border: 1px solid var(--mud-palette-lines-default); border-radius: 14px;">
+            <MudText Typo="Typo.body1">
+                Replace this panel with your real fields for <b>@title</b>.
+            </MudText>
+        </MudPaper>;
+    };
+
+    private RenderFragment ProjectBasicsStep() => __builder =>
+    {
+        <MudText Typo="Typo.h3">Set up the basics when doing loans and we'll guide you through the rest.</MudText>
+
+        <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Dense="true" Class="mt-6" Style="background: rgba(0, 200, 167, 0.08); color: var(--mud-palette-text-primary); border-left: 4px solid rgba(0, 200, 167, 1);">
+
+            <MudText Typo="Typo.body2">
+                <b>Tip:</b> Your profile defaults will auto-fill party information. You can always override them for individual projects.
+            </MudText>
+
+        </MudAlert>
+
+        <MudPaper Class="mt-6 pa-6" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default); border-radius: 14px;">
+
+            <div class="d-flex align-center justify-space-between">
+        
+                <MudText Typo="Typo.h6">What's your role when executing loans?</MudText>
+            
+            </div>
+
+            <MudGrid Class="mt-4" GutterSize="3">
+
+                @foreach (var role in Roles)
+                {
+                    <MudItem xs="12" sm="6" md="3">
+
+                        <MudPaper Class="@GetTileClass(SelectedRole == role.Value)" Elevation="0" Style="@GetTileStyle(SelectedRole == role.Value)" @onclick="() => SelectedRole = role.Value">
+
+                            <div class="d-flex flex-column align-center justify-center" style="height: 92px;">
+                        
+                                <MudIcon Icon="@role.Icon" Size="Size.Medium" Class="mb-2" />
+                            
+                                <MudText @bind-Value="vm.Role" Typo="Typo.subtitle2">@role.Label</MudText>
+                            
+                            </div>
+
+                        </MudPaper>
+
+                    </MudItem>
+                }
+
+            </MudGrid>
+
+            <div class="d-flex align-center justify-space-between mt-4 px-2 py-2" style="background: rgba(0,0,0,0.02); border-radius: 10px;">
+
+                <MudText Typo="Typo.body2">Use my saved company info as the Lender on this project</MudText>
+                <MudSwitch T="bool" Color="Color.Success">Details</MudSwitch>
+
+                <QuickLoanBroker OnBrokerComplete="OnBrokerComplete" OnBrokerCanceled="OnBrokerCanceled" />
+
+            
+                </div>
+
+          
+        </MudPaper>
+
+        <MudPaper Class="mt-6 pa-6" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default); border-radius: 14px;">
+
+            <MudText Typo="Typo.h6">Project Information</MudText>
+                        
+            <MudGrid Class="mt-4" GutterSize="3">
+        
+                @foreach (var type in vm.LoanTypes)
+                {
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudPaper Elevation="0"
+                                  Class="rounded-lg"
+                                  Style="@GetTileStyle(SelectedLoanType == type.Name)"
+                                  @onclick="() => vm.EditingUserDefaultProfile.LoanType.Id = type.Id">
+                            <div class="d-flex flex-column align-center justify-center"
+                                 style="height: 120px; padding: 18px;">
+                                <MudAvatar Variant="Variant.Outlined"
+                                           Size="Size.Large"
+                                           Color="Color.Default"
+                                           Class="mb-3">
+                                    <MudIcon Icon="@ResolveIcon(type.IconKey)" />
+                                </MudAvatar>
+
+                                <MudText Typo="Typo.subtitle2">@type.Name</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                                    @type.Description
+                                </MudText>
+                            </div>
+                        </MudPaper>
+                    </MudItem>
+                }
+
+            </MudGrid>
+
+        </MudPaper>
+
+        <MudPaper Class="mt-6 pa-6" Elevation="0" Style="border: 1px solid var(--mud-palette-lines-default); border-radius: 14px;">
+
+            <div class="d-flex align-center justify-space-between">
+                <MudText Typo="Typo.h6">Your Saved Defaults</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Warning" Size="Size.Small" StartIcon="@Icons.Material.Filled.Edit">
+                    EDIT IN PROFILE
+                </MudButton>
+            </div>
+
+            <MudGrid Class="mt-4" GutterSize="3">
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="DefaultCompanyName"
+                                  Label="Company Name"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="DefaultPhone"
+                                  Label="Phone Number"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="DefaultAddress"
+                                  Label="Address"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense" />
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-2">Licensed States</MudText>
+
+                    <MudChipSet T="string"
+                                MultiSelection="true"
+                                SelectionMode="SelectionMode.MultiSelection"
+                                SelectedValues="@SelectedLicensedStates"
+                                SelectedValuesChanged="OnLicensedStatesChanged"
+                                Class="d-flex flex-wrap gap-2">
+                        @foreach (var st in AllStates)
+                        {
+                            <MudChip T="string"
+                                     Value="@st"
+                                     Variant="Variant.Filled"
+                                     Color="Color.Dark"
+                                     OnClose="() => RemoveState(st)"
+                                     Closeable="@SelectedLicensedStates.Contains(st)"
+                                     Class="mr-2 mb-2">
+                                @st
+                            </MudChip>
+                        }
+                    </MudChipSet>
+
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.Add" Class="mt-2"
+                               OnClick="AddState">
+                        Add State
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>;
+    };
+
+}
+<style>
+    .sidebar-title { font-weight: 800; letter-spacing: -0.5px; color: var(--mud-palette-text-primary); }
+    .step-row { border-radius: 12px; cursor: pointer; padding-top: 10px; padding-bottom: 10px; }
+    .step-row:hover { background: rgba(0,0,0,0.03); }
+    .step-row-active { background: rgba(20, 50, 255, 0.06); border: 1px solid rgba(20, 50, 255, 0.25); }
+    .step-title-active { font-weight: 700; }
+    .step-hint { opacity: 0.75; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .step-hint-active { opacity: 0.9; }
+</style>

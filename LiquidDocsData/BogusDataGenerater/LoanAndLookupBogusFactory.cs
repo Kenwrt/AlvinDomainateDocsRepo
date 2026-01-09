@@ -1,7 +1,6 @@
 ﻿using Bogus;
 using LiquidDocsData.Enums;
 using LiquidDocsData.Models;
-using System;
 
 namespace LiquidDocsData.BogusDataGenerater;
 
@@ -125,7 +124,7 @@ public static class LoanAndLookupBogusFactory
             .RuleFor(x => x.InitialMargin, f => f.Random.Decimal(0m, 5m))
             .RuleFor(x => x.AmorizationType, f => f.PickRandom<Payment.AmortizationTypes>())
             .RuleFor(x => x.RepaymentSchedule, f => f.PickRandom<Payment.Schedules>())
-            .RuleFor(x => x.LoanType, f => f.PickRandom<Loan.Types>())
+            // .RuleFor(x => x.LoanType, f => f.PickRandom<Loan.Types>())
             .RuleFor(x => x.RateType, f => f.PickRandom<Payment.RateTypes>())
             .RuleFor(x => x.PerDiemOption, f => f.PickRandom<Payment.PerDiemInterestOptions>())
             .RuleFor(x => x.IsBalloonPayment, f => f.Random.Bool());
@@ -133,25 +132,12 @@ public static class LoanAndLookupBogusFactory
     private static readonly Faker<Document> DocumentFaker =
         new Faker<Document>()
             .RuleFor(x => x.Id, _ => Guid.NewGuid())
-            .RuleFor(x => x.UserId, f => f.Random.Guid())
+            //.RuleFor(x => x.UserId, f => f.Random.Guid())
             .RuleFor(x => x.Name, f => f.Lorem.Sentence(3))
-            .RuleFor(x => x.Description, f => f.Lorem.Sentence())
+
             .RuleFor(x => x.HiddenTagName, _ => "LoanNumber")
-            .RuleFor(x => x.HiddenTagValue, f => $"LN-{f.Random.Int(1000, 9999)}")
-            .RuleFor(x => x.State, f => f.PickRandom<UsStates.UsState>())
-            .RuleFor(x => x.IsActive, _ => true);
+            .RuleFor(x => x.HiddenTagValue, f => $"LN-{f.Random.Int(1000, 9999)}");
 
-    private static readonly Faker<DocumentSet> DocumentSetFaker =
-        new Faker<DocumentSet>()
-            .RuleFor(x => x.Id, _ => Guid.NewGuid())
-            .RuleFor(x => x.LoanId, f => f.Random.Guid())
-            .RuleFor(x => x.UserId, f => f.Random.Guid())
-            .RuleFor(x => x.Name, f => f.Lorem.Sentence(2))
-            .RuleFor(x => x.Description, f => f.Lorem.Sentence())
-            .RuleFor(x => x.IsActive, _ => true)
-            .RuleFor(x => x.Documents, (f, _) => DocumentFaker.Generate(f.Random.Int(1, 5)));
-
-  
     public static LoanAgreementDocument GenerateLoanApplication(Guid userId)
     {
         var agreement = LoanAgreementFaker.Clone()
@@ -176,8 +162,6 @@ public static class LoanAndLookupBogusFactory
 
         return app;
     }
-
-    
 
     public static Borrower GenerateBorrower(Guid userId) =>
         BorrowerFaker.Clone().RuleFor(x => x.UserId, _ => userId).Generate();

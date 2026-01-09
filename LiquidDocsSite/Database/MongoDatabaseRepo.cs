@@ -1,10 +1,8 @@
-﻿using DocumentFormat.OpenXml.Office2010.Excel;
-using LiquidDocsSite.Helpers;
+﻿using LiquidDocsSite.Helpers;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
-using System.Reflection;
 
 namespace LiquidDocsSite.Database;
 
@@ -46,15 +44,11 @@ public class MongoDatabaseRepo : IMongoDatabaseRepo
             mongoConn = client.GetDatabase(databaseName);
 
             logger.LogInformation("Connected to Mongo database {db}", databaseName);
-
         }
         catch (Exception ex)
         {
-
             logger.LogError(ex.Message);
         }
-
-
     }
 
     public T GetRecordById<T>(Guid id) where T : class
@@ -277,6 +271,40 @@ public class MongoDatabaseRepo : IMongoDatabaseRepo
             await mongoConn.DropCollectionAsync(collectionName);
         }
         catch (SystemException ex)
+        {
+            logger.LogError(ex.Message);
+        }
+    }
+
+    public void DeleteRecordById<T>(Guid id) where T : class
+    {
+        Guid guidId = Guid.Empty;
+
+        try
+        {
+            string table = typeof(T).Name;
+            Type objType = typeof(T);
+
+            var collection = mongoConn.GetCollection<T>(table);
+
+            var filter = Builders<T>.Filter.Eq(
+            "_id",
+            new MongoDB.Bson.BsonBinaryData(id, GuidRepresentation.Standard));
+            var doc = collection.Find(filter).FirstOrDefault();
+
+            if (doc == null)
+            {
+                // fall back to "Id" for old docs
+                filter = Builders<T>.Filter.Eq(
+                    "Id",
+                    new MongoDB.Bson.BsonBinaryData(id, GuidRepresentation.Standard)
+                );
+                doc = collection.Find(filter).FirstOrDefault();
+            }
+
+            collection.DeleteOne(filter);
+        }
+        catch (Exception ex)
         {
             logger.LogError(ex.Message);
         }

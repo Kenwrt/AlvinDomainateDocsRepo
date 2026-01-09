@@ -1,9 +1,7 @@
-﻿
-using FluentValidation;
+﻿using FluentValidation;
 using LiquidDocsData.Models;
 
 namespace LiquidDocsData.FluentValidation;
-
 
 public class SigningAuthorityValidator : AbstractValidator<SigningAuthority>
 {

@@ -28,6 +28,7 @@ public class PropertyOwner : IPartyNames
     [BsonRepresentation(BsonType.String)]
     [DataType(DataType.Text)]
     public Entity.Structures EntityStructure { get; set; }
+
     public string EntityStructureDescription => EntityStructure.GetDescription();
 
     [JsonConverter(typeof(StringEnumConverter))]

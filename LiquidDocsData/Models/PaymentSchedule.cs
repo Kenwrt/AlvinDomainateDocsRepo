@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LiquidDocsData.Models;
+﻿namespace LiquidDocsData.Models;
 
 public class PaymentSchedule
 {
@@ -16,16 +10,4 @@ public class PaymentSchedule
     public int MyProperty { get; set; }
 
     public List<RateChange> RateChangeList { get; set; }
-
-   
-            
-            
-            
-            
 }
-
-
-
-
-
-

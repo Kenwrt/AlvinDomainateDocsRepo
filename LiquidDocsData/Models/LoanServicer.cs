@@ -18,6 +18,8 @@ namespace LiquidDocsData.Models
 
         public Guid UserId { get; set; }
 
+        public Guid UserDefaultProfileId { get; set; }
+
         // Identity
         public string EntityName { get; set; }              // Legal name
 

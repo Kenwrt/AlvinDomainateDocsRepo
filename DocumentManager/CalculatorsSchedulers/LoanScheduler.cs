@@ -6,14 +6,13 @@ namespace DocumentManager.CalculatorsSchedulers;
 
 public class LoanScheduler : ILoanScheduler
 {
-    ILogger<LoanScheduler> logger;
-
+    private ILogger<LoanScheduler> logger;
 
     public LoanScheduler(ILogger<LoanScheduler> logger)
     {
         this.logger = logger;
-
     }
+
     /// <summary>
     /// Generate schedule for a FIXED interest loan.
     /// </summary>
@@ -33,7 +32,6 @@ public class LoanScheduler : ILoanScheduler
 
         try
         {
-
             ValidateDates(startDate, endDate);
 
             int n = CountMonthlyPeriods(startDate, endDate);
@@ -89,11 +87,9 @@ public class LoanScheduler : ILoanScheduler
                     AnnualRatePercent = annualRatePercent
                 });
             }
-
         }
         catch (Exception ex)
         {
-
             logger.LogError(ex.Message);
         }
 
@@ -103,7 +99,6 @@ public class LoanScheduler : ILoanScheduler
             TotalPayments = periods.Sum(x => x.Payment),
             PeriodCount = periods.Count,
             Periods = periods,
-
         };
     }
 
@@ -120,7 +115,6 @@ public class LoanScheduler : ILoanScheduler
     /// <param name="amortizationTermMonths">Only used for PartiallyAmortized; amortization horizon used to compute PMT at each reset.</param>
     public PaymentSchedule GenerateVariable(decimal principal, decimal downPaymentPercent, DateTime startDate, DateTime endDate, Payment.AmortizationTypes amortizationType, List<RateChange> rateSchedule, int? amortizationTermMonths = null)
     {
-
         List<PaymentPeriod> periods = new();
 
         decimal financed = 0;
@@ -216,11 +210,8 @@ public class LoanScheduler : ILoanScheduler
         }
         catch (Exception ex)
         {
-
             logger.LogError(ex.Message);
         }
-
-
 
         return new PaymentSchedule
         {
@@ -239,8 +230,6 @@ public class LoanScheduler : ILoanScheduler
 
         try
         {
-
-
             if (periods <= 0) return 0m;
             if (principal <= 0) return 0m;
 
@@ -253,11 +242,9 @@ public class LoanScheduler : ILoanScheduler
             decimal r = ratePerPeriod;
             decimal pow = (decimal)Math.Pow((double)(1m + r), -periods);
             pmt = principal * r / (1m - pow);
-
         }
         catch (Exception ex)
         {
-
             logger.LogError(ex.Message);
         }
 
@@ -270,8 +257,6 @@ public class LoanScheduler : ILoanScheduler
 
         try
         {
-
-
             if (end <= start) return 0;
 
             // Count monthly boundaries using same-day-or-EOM convention
@@ -297,11 +282,9 @@ public class LoanScheduler : ILoanScheduler
                 count = ((end.Year - start.Year) * 12 + end.Month - start.Month);
                 if (count <= 0) count = 1;
             }
-
         }
         catch (Exception ex)
         {
-
             logger.LogError(ex.Message);
         }
 
@@ -338,18 +321,15 @@ public class LoanScheduler : ILoanScheduler
 
         try
         {
-
             // last rate whose EffectiveDate <= date
 
             foreach (var rc in schedule)
             {
                 if (rc.EffectiveDate <= date) current = rc; else break;
             }
-
         }
         catch (Exception ex)
         {
-
             logger.LogError(ex.Message);
         }
 

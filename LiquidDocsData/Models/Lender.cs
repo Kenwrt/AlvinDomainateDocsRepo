@@ -17,6 +17,10 @@ public class Lender : IPartyNames
 
     public Guid UserId { get; set; }
 
+    public Guid UserDefaultProfileId { get; set; }
+
+    public int LenderCode { get; set; } 
+
     [JsonConverter(typeof(StringEnumConverter))]
     [BsonRepresentation(BsonType.String)]
     [DataType(DataType.Text)]

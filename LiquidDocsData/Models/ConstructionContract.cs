@@ -14,7 +14,7 @@ public class ConstructionContract : IPartyNames
     [BsonIgnoreIfDefault]
     [BsonId]
     public Guid Id { get; set; } = Guid.NewGuid();
-        
+
     [JsonConverter(typeof(StringEnumConverter))]
     [BsonRepresentation(BsonType.String)]
     [DataType(DataType.Text)]
@@ -77,13 +77,13 @@ public class ConstructionContract : IPartyNames
     public bool IsLanuageTranslatorRequired { get; set; } = false;
 
     public bool IsSignatureAuthority { get; set; } = false;
-   
+
     public List<SigningAuthority> SigningAuthorities { get; set; } = new();
-    
+
     public string SigningAuthoritiesFormatted { get; set; }
-    
+
     public List<EntityOwner> EntityOwners { get; set; } = new();
-    
+
     public string EntityOwnersFormatted { get; set; }
 
     public string SignatureLinesFormatted { get; set; }

@@ -1,10 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
-using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
-using LiquidDocsSite.State;
 using System.Collections.ObjectModel;
 
 namespace LiquidDocsSite.ViewModels;
@@ -22,11 +18,9 @@ public partial class StateLendingLicenseViewModel : ObservableObject
 
     private readonly ILogger<StateLendingLicenseViewModel> logger;
 
-
     public StateLendingLicenseViewModel(ILogger<StateLendingLicenseViewModel> logger)
     {
         this.logger = logger;
-
     }
 
     [RelayCommand]
@@ -40,46 +34,33 @@ public partial class StateLendingLicenseViewModel : ObservableObject
         if (stateLicList is not null) MyRecordList = new ObservableCollection<LiquidDocsData.Models.StateLendingLicense>(stateLicList);
     }
 
-
     [RelayCommand]
     private async Task UpsertRecord()
     {
-
         //Update All Collections
 
         int recordListIndex = MyRecordList.FindIndex(x => x.Id == EditingRecord.Id);
 
         if (recordListIndex > -1)
         {
-
             MyRecordList[recordListIndex] = EditingRecord;
-
         }
         else
         {
             MyRecordList.Add(EditingRecord);
         }
-
-
     }
-
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.StateLendingLicense r)
     {
-
         int recordListIndex = MyRecordList.FindIndex(x => x.Id == r.Id);
 
         if (recordListIndex > -1)
         {
-
             MyRecordList.RemoveAt(recordListIndex);
-
         }
-
-
     }
-
 
     [RelayCommand]
     private void SelectRecord(LiquidDocsData.Models.StateLendingLicense r)
@@ -105,6 +86,5 @@ public partial class StateLendingLicenseViewModel : ObservableObject
     private void GetNewRecord()
     {
         EditingRecord = new LiquidDocsData.Models.StateLendingLicense();
-
     }
 }

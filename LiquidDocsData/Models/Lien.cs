@@ -15,7 +15,7 @@ public class Lien
     [BsonId]
     [Required]
     public Guid Id { get; set; } = Guid.NewGuid();
-     
+
     public string Description { get; set; }
 
     [JsonConverter(typeof(StringEnumConverter))]

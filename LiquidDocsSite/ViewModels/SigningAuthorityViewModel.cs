@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
-using LiquidDocsSite.State;
 using System.Collections.ObjectModel;
 
 namespace LiquidDocsSite.ViewModels;
@@ -18,15 +16,12 @@ public partial class SigningAuthorityViewModel : ObservableObject
     [ObservableProperty]
     private LiquidDocsData.Models.SigningAuthority selectedRecord = null;
 
-   
     private readonly ILogger<SigningAuthorityViewModel> logger;
 
     public SigningAuthorityViewModel(ILogger<SigningAuthorityViewModel> logger)
     {
-
         this.logger = logger;
     }
-
 
     [RelayCommand]
     private async Task InitializeLoadPage()
@@ -37,44 +32,32 @@ public partial class SigningAuthorityViewModel : ObservableObject
         }
     }
 
-
     [RelayCommand]
     private async Task UpsertRecord()
     {
-
         //Update All Collections
 
         int recordListIndex = MyRecordList.FindIndex(x => x.Id == EditingRecord.Id);
 
         if (recordListIndex > -1)
         {
-
             MyRecordList[recordListIndex] = EditingRecord;
-
         }
         else
         {
             MyRecordList.Add(EditingRecord);
         }
-
-
     }
-
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.SigningAuthority r)
     {
-
         int recordListIndex = MyRecordList.FindIndex(x => x.Id == r.Id);
 
         if (recordListIndex > -1)
         {
-
             MyRecordList.RemoveAt(recordListIndex);
-
         }
-
-
     }
 
     [RelayCommand]
@@ -101,6 +84,5 @@ public partial class SigningAuthorityViewModel : ObservableObject
     private void GetNewRecord()
     {
         EditingRecord = new LiquidDocsData.Models.SigningAuthority();
-       
     }
 }

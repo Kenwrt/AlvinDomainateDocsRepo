@@ -3,7 +3,6 @@ using LiquidDocsData.Models;
 
 namespace LiquidDocsData.FluentValidation;
 
-
 public class PropertyOwnerValidator : AbstractValidator<PropertyOwner>
 {
     public PropertyOwnerValidator()

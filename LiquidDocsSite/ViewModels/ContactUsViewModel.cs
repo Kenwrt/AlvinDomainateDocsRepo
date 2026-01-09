@@ -1,30 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using LiquidDocsData.Enums;
 using LiquidDocsNotify.Models;
-using LiquidDocsNotify.Enums;
 using LiquidDocsNotify.State;
-using PostmarkDotNet.Model;
-using System.Collections.Concurrent;
-using System.Globalization;
-using Twilio.Types;
 
 namespace LiquidDocsSite.ViewModels;
 
 public partial class ContactUsViewModel : ObservableObject
 {
-  
-
     [ObservableProperty]
     private EmailMsg editingMailMsg = null;
 
     [ObservableProperty]
     private EmailMsg selectedMailMsg = null;
 
-
-
     public INotifyState? NotifyState { get; set; }
-    
+
     public ContactUsViewModel(INotifyState? NotifyState)
     {
         this.NotifyState = NotifyState;
@@ -37,10 +27,6 @@ public partial class ContactUsViewModel : ObservableObject
         {
             EditingMailMsg = new();
         }
-
-
-
-
     }
 
     [RelayCommand]
@@ -68,8 +54,6 @@ public partial class ContactUsViewModel : ObservableObject
         //{
         //    GetLoanMaturityDate(EditingAgreement.VariableInterestProperties.TermInMonths);
         //}
-
-
     }
 
     [RelayCommand]
@@ -77,7 +61,7 @@ public partial class ContactUsViewModel : ObservableObject
     {
         try
         {
-           //dbApp.UpSertRecord<LiquidDocsData.Models.LoanAgreement>(EditingAgreement);
+            //dbApp.UpSertRecord<LiquidDocsData.Models.LoanAgreement>(EditingAgreement);
         }
         catch (Exception ex)
         {
@@ -116,7 +100,6 @@ public partial class ContactUsViewModel : ObservableObject
     {
         //SelectedAgreement = EditingAgreement;
 
-
         //if (EditingAgreement.RateType == Payment.RateTypes.Fixed)
         //{
         //    GetLoanMaturityDate(EditingAgreement.FixedInterestProperties.TermInMonths);
@@ -127,7 +110,6 @@ public partial class ContactUsViewModel : ObservableObject
         //}
     }
 
-   
     [RelayCommand]
     private void ClearSelection()
     {
@@ -147,7 +129,6 @@ public partial class ContactUsViewModel : ObservableObject
         //dbApp.UpSertRecord<LiquidDocsData.Models.LoanAgreement>(EditingAgreement);
     }
 
-   
     [RelayCommand]
     private void SendMail()
     {
@@ -170,11 +151,9 @@ public partial class ContactUsViewModel : ObservableObject
                     email = EditingMailMsg.ReplyTo,
                     message = EditingMailMsg.MessageBody
                 }
-
             };
 
             NotifyState.EmailMsgProcessingQueue.Enqueue(mailMSG);
-
 
             mailMSG = new()
             {
@@ -184,24 +163,18 @@ public partial class ContactUsViewModel : ObservableObject
                 PostMarkTemplateId = (int)LiquidDocsNotify.Enums.EmailEnums.Templates.UserContact,
                 TemplateModel = new
                 {
-                     login_url = "https://liquiddocs.law/account/login",
-                     username = EditingMailMsg.Name ?? string.Empty,
-                     product_name = "LiquidDocs",
-                     support_email = "https://liquiddocs.law/support",
-                     help_url = "https://liquiddocs.law/help",
-                     name = EditingMailMsg.Name,
-                     email = EditingMailMsg.ReplyTo,
-                     message = EditingMailMsg.MessageBody
+                    login_url = "https://liquiddocs.law/account/login",
+                    username = EditingMailMsg.Name ?? string.Empty,
+                    product_name = "LiquidDocs",
+                    support_email = "https://liquiddocs.law/support",
+                    help_url = "https://liquiddocs.law/help",
+                    name = EditingMailMsg.Name,
+                    email = EditingMailMsg.ReplyTo,
+                    message = EditingMailMsg.MessageBody
                 }
-
             };
 
-
             NotifyState.EmailMsgProcessingQueue.Enqueue(mailMSG);
-
-
-
-
         }
         catch (System.Exception ex)
         {

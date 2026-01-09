@@ -5,14 +5,15 @@
 	<OutputType>Library</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>disable</Nullable>
+    <Nullable>enable</Nullable>
+	  <LangVersion>latest</LangVersion>
     <EnablePreviewFeatures>true</EnablePreviewFeatures>
 	<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <IncludeReferencedProjects>true</IncludeReferencedProjects>
 	<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageOutputPath>$(SolutionDir)LocalPackages</PackageOutputPath>
 
-	<PackageId>LiquidDocs.DocumentManager</PackageId>
+	
 	<Authors>Ken Wright</Authors>
 	<Company>LiquidDocs LLC</Company>
 
@@ -81,6 +82,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LiquidDocsData\LiquidDocsData.csproj" />
+    <ProjectReference Include="..\LiquidDocsNotifier\LiquidDocsNotify.csproj" />
   </ItemGroup>
 
   <ItemGroup>

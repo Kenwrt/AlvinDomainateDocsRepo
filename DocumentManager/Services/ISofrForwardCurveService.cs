@@ -1,5 +1,4 @@
-﻿
-namespace DocumentManager.Services;
+﻿namespace DocumentManager.Services;
 
 public interface ISofrForwardCurveService
 {

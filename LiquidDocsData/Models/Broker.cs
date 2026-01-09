@@ -19,6 +19,10 @@ public class Broker : IPartyNames
 
     public Guid UserId { get; set; }
 
+    public Guid UserDefaultProfileId { get; set; }
+
+    public int BrokerCode { get; set; }
+
     public string EntityName { get; set; }
 
     [JsonConverter(typeof(StringEnumConverter))]

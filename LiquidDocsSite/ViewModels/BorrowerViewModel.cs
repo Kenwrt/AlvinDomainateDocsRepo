@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 
 using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -23,13 +22,12 @@ public partial class BorrowerViewModel : ObservableObject
 
     [ObservableProperty]
     private LiquidDocsData.Models.Borrower selectedRecord = null;
-  
+
     [ObservableProperty]
     private int counter = 0;
 
-
     private List<LiquidDocsData.Models.Borrower> loanBorrowers;
-    
+
     private string userId;
     private readonly IMongoDatabaseRepo dbApp;
     private readonly UserSession userSession;
@@ -52,11 +50,10 @@ public partial class BorrowerViewModel : ObservableObject
         if (EditingRecord is null) GetNewRecord();
 
         RecordList.Clear();
-   
+
         dbApp.GetRecords<LiquidDocsData.Models.Borrower>().ToList().ForEach(lf => RecordList.Add(lf));
     }
 
-    
     [RelayCommand]
     private async Task UpsertRecord()
     {
@@ -69,48 +66,27 @@ public partial class BorrowerViewModel : ObservableObject
 
         if (index > -1)
         {
-
             RecordList[index] = EditingRecord;
-
         }
         else
         {
             RecordList.Add(EditingRecord);
         }
 
-        //index = MyBorrowerList.FindIndex(x => x.Id == EditingRecord.Id);
-
-        //if (index > -1)
-        //{
-
-        //    MyBorrowerList[index] = EditingRecord;
-
-        //}
-        //else
-        //{
-        //    MyBorrowerList.Add(EditingRecord);
-        //}
-
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.Borrower>(EditingRecord);
-
-          
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.Borrower r)
     {
-
         int myBorrowerIndex = RecordList.FindIndex(x => x.Id == r.Id);
 
         if (myBorrowerIndex > -1)
         {
-
             RecordList.RemoveAt(myBorrowerIndex);
-
         }
 
         dbApp.DeleteRecord<LiquidDocsData.Models.Borrower>(r);
-
     }
 
     [RelayCommand]
@@ -140,7 +116,5 @@ public partial class BorrowerViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-
-        
     }
 }

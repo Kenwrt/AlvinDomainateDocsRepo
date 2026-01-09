@@ -34,22 +34,19 @@ public static class DocumentManagerExtensions
 
             services.TryAddSingleton<IWordServices, WordServices>();
 
-                      
-
             services.TryAddSingleton<ILoanScheduler, LoanScheduler>();
 
             services.TryAddSingleton<IBalloonPaymentCalculater, BalloonPaymentCalculater>();
 
             services.TryAddSingleton<IRazorLiteService, RazorLiteService>();
 
-            services.TryAddSingleton<IDocumentMergeBackgroundService,DocumentMergeBackgroundService>();
+            services.TryAddSingleton<IDocumentMergeBackgroundService, DocumentMergeBackgroundService>();
 
             services.TryAddSingleton<IMongoDatabaseRepoDocuments, MongoDatabaseRepoDocuments>();
 
             services.TryAddSingleton<IFetchCurrentIndexRatesAndSchedulesService, FetchCurrentIndexRatesAndSchedulesService>();
 
             services.AddHttpClient<FetchCurrentIndexRatesAndSchedulesService>();
-            
 
             services.Configure<HostOptions>(x =>
             {

@@ -1,12 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiquidDocsData.Enums;
-using LiquidDocsData.Models;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
-using OpenXmlPowerTools;
 using System.Collections.ObjectModel;
 
 namespace LiquidDocsSite.ViewModels;
@@ -16,7 +13,7 @@ public partial class PropertyOwnerViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<LiquidDocsData.Models.PropertyOwner> recordList = new();
 
-    [ObservableProperty] 
+    [ObservableProperty]
     private ObservableCollection<LiquidDocsData.Models.PropertyOwner> myOwnerList = new();
 
     [ObservableProperty]
@@ -40,10 +37,8 @@ public partial class PropertyOwnerViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-
     }
 
-   
     [RelayCommand]
     private async Task InitializePage(List<LiquidDocsData.Models.PropertyOwner> ownerList = null)
     {
@@ -58,11 +53,8 @@ public partial class PropertyOwnerViewModel : ObservableObject
             MyOwnerList.Clear();
             MyOwnerList = ownerList.ToObservableCollection();
         }
-
-
     }
 
-   
     [RelayCommand]
     private async Task UpsertRecord()
     {
@@ -72,12 +64,10 @@ public partial class PropertyOwnerViewModel : ObservableObject
         }
 
         int index = RecordList.FindIndex(x => x.Id == EditingRecord.Id);
-       
+
         if (index > -1)
         {
-
             RecordList[index] = EditingRecord;
-
         }
         else
         {
@@ -88,9 +78,7 @@ public partial class PropertyOwnerViewModel : ObservableObject
 
         if (index > -1)
         {
-
             MyOwnerList[index] = EditingRecord;
-
         }
         else
         {
@@ -98,26 +86,19 @@ public partial class PropertyOwnerViewModel : ObservableObject
         }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.PropertyOwner>(EditingRecord);
-
-       
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.PropertyOwner r)
     {
-
         int myOwnerIndex = MyOwnerList.FindIndex(x => x.Id == r.Id);
 
         if (myOwnerIndex > -1)
         {
-
             MyOwnerList.RemoveAt(myOwnerIndex);
-
         }
 
-
         dbApp.DeleteRecord<LiquidDocsData.Models.PropertyOwner>(r);
-
     }
 
     [RelayCommand]
@@ -140,8 +121,6 @@ public partial class PropertyOwnerViewModel : ObservableObject
         }
     }
 
-   
-
     [RelayCommand]
     private void GetNewRecord()
     {
@@ -149,6 +128,5 @@ public partial class PropertyOwnerViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-              
     }
 }

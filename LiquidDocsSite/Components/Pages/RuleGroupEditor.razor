@@ -1,0 +1,412 @@
+﻿@using MudBlazor
+@using LiquidDocsData.Models.RulesEngine
+@using LiquidDocsData.Models.RulesEngine.Enums
+@using LiquidDocsData.Models.RulesEngine.Fields
+
+<MudPaper Outlined="true" Class="pa-3 mb-2">
+    <MudText Typo="Typo.subtitle2">@DisplayTitle</MudText>
+
+    @if (Group is null)
+    {
+        <MudAlert Severity="Severity.Error" Dense="true">RuleGroupEditor: Group is null</MudAlert>
+    }
+    else
+    {
+        @for (int i = 0; i < Group.Terms.Count; i++)
+        {
+            var term = Group.Terms[i];
+
+            <MudPaper Outlined="true" Class="pa-3 mb-2">
+                <div class="d-flex align-center justify-space-between mb-2">
+                    <MudSelect T="string"
+                               Dense="true"
+                               Variant="Variant.Outlined"
+                               Label="Term Type"
+                               Value="@GetNodeType(term.Node)"
+                               ValueChanged="@((string t) => ChangeNodeType(term, t))">
+                        <MudSelectItem T="string" Value="@("condition")">Field Condition</MudSelectItem>
+                        <MudSelectItem T="string" Value="@("group")">Group</MudSelectItem>
+                    </MudSelect>
+
+                    <MudIconButton Icon="@Icons.Material.Filled.DeleteOutline"
+                                   Color="Color.Error"
+                                   Size="Size.Small"
+                                   OnClick="@(() => RemoveTerm(i))" />
+                </div>
+
+                @if (term.Node is ConditionLeaf leaf)
+                {
+                    <div @key="leaf.Id">
+                        @RenderLeafEditor(i, leaf)
+                    </div>
+                }
+                else if (term.Node is ConditionGroupNode g)
+                {
+                    <div @key="g.GetHashCode()">
+                        <RuleGroupEditor Title="Group"
+                                         Vm="Vm"
+                                         Rule="Rule"
+                                         Group="g.Group"
+                                         Fields="Fields"
+                                         FieldValues="FieldValues"
+                                         Depth="@(Depth + 1)"
+                                         OnChanged="OnChanged" />
+                    </div>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true">
+                        Unknown term node type: @(term.Node?.GetType().FullName ?? "(null)")
+                    </MudAlert>
+                }
+
+                @if (i < Group.Terms.Count - 1)
+                {
+                    <div class="d-flex justify-start mt-2">
+                        <MudToggleGroup T="RulesEnums.LogicalOperator"
+                                        Exclusive="true"
+                                        Size="Size.Small"
+                                        @bind-Value="term.JoinToNext">
+                            <MudToggleItem Value="RulesEnums.LogicalOperator.And">And</MudToggleItem>
+                            <MudToggleItem Value="RulesEnums.LogicalOperator.Or">Or</MudToggleItem>
+                        </MudToggleGroup>
+                    </div>
+                }
+            </MudPaper>
+        }
+
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   OnClick="@AddCondition">
+            Add Condition
+        </MudButton>
+    }
+</MudPaper>
+
+@code
+{
+    // ---------------- Parameters ----------------
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public object? Vm { get; set; }
+    [Parameter] public object? Rule { get; set; }
+    [Parameter] public ConditionGroup Group { get; set; } = default!;
+    [Parameter] public IEnumerable<string> Fields { get; set; } = Array.Empty<string>();
+
+    // Field -> allowed values/options
+    [Parameter] public IDictionary<string, IEnumerable<string>> FieldValues { get; set; } = new Dictionary<string, IEnumerable<string>>();
+
+    [Parameter] public int Depth { get; set; } = 0;
+    [Parameter] public EventCallback OnChanged { get; set; }
+
+    private string DisplayTitle => !string.IsNullOrWhiteSpace(Title) ? Title! : "Rule Group";
+
+    // ---------------- Multi-select state keyed by stable leaf.Id ----------------
+    // NOTE: Requires ConditionLeaf.Id to exist and be stable (Guid persisted in Mongo).
+    private readonly Dictionary<Guid, HashSet<string>> _selectedByLeafId = new();
+
+    protected override void OnParametersSet()
+    {
+        // Sync UI sets from model values (and dedupe model in-place).
+        if (Group?.Terms is null) return;
+
+        foreach (var term in Group.Terms)
+        {
+            if (term.Node is not ConditionLeaf leaf) continue;
+
+            leaf.Condition.Values ??= new List<string>();
+
+            if (!_selectedByLeafId.TryGetValue(leaf.Id, out var set))
+            {
+                set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                _selectedByLeafId[leaf.Id] = set;
+            }
+
+            set.Clear();
+            foreach (var v in leaf.Condition.Values)
+            {
+                var t = v?.Trim();
+                if (!string.IsNullOrWhiteSpace(t))
+                    set.Add(t);
+            }
+
+            // Keep model clean IN PLACE (no list reassignment).
+            leaf.Condition.Values.Clear();
+            leaf.Condition.Values.AddRange(set);
+        }
+    }
+
+    // ---------------- Term management ----------------
+    private void AddCondition()
+    {
+        Group.Terms.Add(new ConditionTerm
+        {
+            Node = new ConditionLeaf(),
+            JoinToNext = RulesEnums.LogicalOperator.And
+        });
+
+        _ = ChangedAsync();
+    }
+
+    private void RemoveTerm(int index)
+    {
+        if (index < 0 || index >= Group.Terms.Count)
+            return;
+
+        if (Group.Terms[index].Node is ConditionLeaf leaf)
+            _selectedByLeafId.Remove(leaf.Id);
+
+        Group.Terms.RemoveAt(index);
+
+        if (Group.Terms.Count == 0)
+            AddCondition();
+
+        _ = ChangedAsync();
+    }
+
+    private string GetNodeType(object? node)
+        => node is ConditionGroupNode ? "group" : "condition";
+
+    private void ChangeNodeType(ConditionTerm term, string type)
+    {
+        if (type == "group")
+        {
+            term.Node = new ConditionGroupNode { Group = new ConditionGroup() };
+        }
+        else
+        {
+            term.Node = new ConditionLeaf();
+        }
+
+        _ = ChangedAsync();
+    }
+
+    // ---------------- Leaf editor ----------------
+    private RenderFragment RenderLeafEditor(int index, ConditionLeaf leaf) => @<div class="mt-2">
+    <MudGrid GutterSize="2">
+        <MudItem xs="12" md="4">
+            <MudSelect T="string"
+                       Dense="true"
+                       Variant="Variant.Outlined"
+                       Label="Field"
+                       Value="@leaf.Condition.FieldKey"
+                       ValueChanged="@((string v) => OnLeafFieldChanged(leaf, v))">
+                @foreach (var f in Fields ?? Array.Empty<string>())
+                                {
+                                var fv = (f ?? string.Empty).Trim();
+                    <MudSelectItem T="string" Value="@fv" @key="fv">@fv</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" md="3">
+            <MudSelect T="RulesEnums.ConditionalOperator"
+                       Dense="true"
+                       Variant="Variant.Outlined"
+                       Label="Operator"
+                       Value="@leaf.Condition.Operator"
+                       ValueChanged="@((RulesEnums.ConditionalOperator op) => OnLeafOperatorChanged(leaf, op))">
+                @foreach (var op in GetAllowedOperators(leaf.Condition.FieldKey))
+                {
+                    <MudSelectItem T="RulesEnums.ConditionalOperator" Value="@op" @key="op">@ToUi(op)</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" md="5">
+            @{
+                var options = GetOptions(leaf.Condition.FieldKey);
+                var isMulti = leaf.Condition.Operator is RulesEnums.ConditionalOperator.In or RulesEnums.ConditionalOperator.NotIn;
+            }
+
+            @if (isMulti && options.Count > 0)
+            {
+                <MudSelect T="string"
+                           Dense="true"
+                           Variant="Variant.Outlined"
+                           Label="Values"
+                           MultiSelection="true"
+                           Clearable="true"
+                           SelectedValues="@GetSelectedSet(leaf)"
+                           SelectedValuesChanged="@((IEnumerable<string> vals) => OnLeafSelectedValuesChanged(leaf, vals))">
+                    @foreach (var (display, value) in options)
+                    {
+                        var v = (value ?? string.Empty).Trim();
+                        <MudSelectItem T="string" Value="@v" @key="v">@display</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <MudTextField T="string"
+                              Dense="true"
+                              Variant="Variant.Outlined"
+                              Label="@(isMulti ? "Values (comma-separated)" : "Value")"
+                              Value="@GetLeafValuesCsv(leaf)"
+                              ValueChanged="@((string v) => OnLeafValuesCsvChanged(leaf, v))"
+                              Clearable="true" />
+            }
+        </MudItem>
+    </MudGrid>
+</div>;
+
+private async Task OnLeafFieldChanged(ConditionLeaf leaf, string fieldKey)
+{
+    leaf.Condition.FieldKey = fieldKey;
+    NormalizeModelValuesInPlace(leaf);
+    await ChangedAsync();
+}
+
+private async Task OnLeafOperatorChanged(ConditionLeaf leaf, RulesEnums.ConditionalOperator op)
+{
+    leaf.Condition.Operator = op;
+    NormalizeModelValuesInPlace(leaf);
+    await ChangedAsync();
+}
+
+private HashSet<string> GetSelectedSet(ConditionLeaf leaf)
+{
+    if (!_selectedByLeafId.TryGetValue(leaf.Id, out var set))
+    {
+        set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        _selectedByLeafId[leaf.Id] = set;
+    }
+
+    leaf.Condition.Values ??= new List<string>();
+
+    set.Clear();
+    foreach (var v in leaf.Condition.Values)
+    {
+        var t = v?.Trim();
+        if (!string.IsNullOrWhiteSpace(t))
+            set.Add(t);
+    }
+
+    leaf.Condition.Values.Clear();
+    leaf.Condition.Values.AddRange(set);
+
+    return set;
+}
+
+private async Task OnLeafSelectedValuesChanged(ConditionLeaf leaf, IEnumerable<string> vals)
+{
+    if (!_selectedByLeafId.TryGetValue(leaf.Id, out var set))
+    {
+        set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        _selectedByLeafId[leaf.Id] = set;
+    }
+
+    set.Clear();
+    foreach (var v in vals ?? Array.Empty<string>())
+    {
+        var t = v?.Trim();
+        if (!string.IsNullOrWhiteSpace(t))
+            set.Add(t);
+    }
+
+    leaf.Condition.Values ??= new List<string>();
+    leaf.Condition.Values.Clear();
+    leaf.Condition.Values.AddRange(set);
+
+    await ChangedAsync();
+}
+
+private string GetLeafValuesCsv(ConditionLeaf leaf)
+{
+    leaf.Condition.Values ??= new List<string>();
+    return string.Join(", ",
+        leaf.Condition.Values
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Select(x => x.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase));
+}
+
+private void OnLeafValuesCsvChanged(ConditionLeaf leaf, string csv)
+{
+    var parts = (csv ?? string.Empty)
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Select(x => x.Trim())
+        .Where(x => !string.IsNullOrWhiteSpace(x));
+
+    var set = new HashSet<string>(parts, StringComparer.OrdinalIgnoreCase);
+
+    leaf.Condition.Values ??= new List<string>();
+    leaf.Condition.Values.Clear();
+    leaf.Condition.Values.AddRange(set);
+
+    if (_selectedByLeafId.TryGetValue(leaf.Id, out var sel))
+    {
+        sel.Clear();
+        foreach (var v in set)
+            sel.Add(v);
+    }
+
+    _ = ChangedAsync();
+}
+
+private void NormalizeModelValuesInPlace(ConditionLeaf leaf)
+{
+    leaf.Condition.Values ??= new List<string>();
+
+    var set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    foreach (var v in leaf.Condition.Values)
+    {
+        var t = v?.Trim();
+        if (!string.IsNullOrWhiteSpace(t))
+            set.Add(t);
+    }
+
+    leaf.Condition.Values.Clear();
+    leaf.Condition.Values.AddRange(set);
+
+    if (_selectedByLeafId.TryGetValue(leaf.Id, out var sel))
+    {
+        sel.Clear();
+        foreach (var v in set)
+            sel.Add(v);
+    }
+}
+
+// ---------------- Operators + options ----------------
+private IEnumerable<RulesEnums.ConditionalOperator> GetAllowedOperators(string? fieldKey)
+{
+    yield return RulesEnums.ConditionalOperator.Equals;
+    yield return RulesEnums.ConditionalOperator.NotEquals;
+    yield return RulesEnums.ConditionalOperator.In;
+    yield return RulesEnums.ConditionalOperator.NotIn;
+}
+
+private List<(string display, string value)> GetOptions(string? fieldKey)
+{
+    var key = (fieldKey ?? string.Empty).Trim();
+    if (string.IsNullOrWhiteSpace(key))
+        return new List<(string, string)>();
+
+    if (!FieldValues.TryGetValue(key, out var vals) || vals is null)
+        return new List<(string, string)>();
+
+    return vals
+        .Where(v => !string.IsNullOrWhiteSpace(v))
+        .Select(v => v.Trim())
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Select(v => (v, v))
+        .ToList();
+}
+
+private static string ToUi(RulesEnums.ConditionalOperator op)
+{
+    var s = op.ToString();
+    var sb = new System.Text.StringBuilder();
+    for (int i = 0; i < s.Length; i++)
+    {
+        var c = s[i];
+        if (i > 0 && char.IsUpper(c) && !char.IsUpper(s[i - 1]))
+            sb.Append(' ');
+        sb.Append(c);
+    }
+    return sb.ToString();
+}
+
+private Task ChangedAsync()
+    => OnChanged.HasDelegate ? OnChanged.InvokeAsync() : Task.CompletedTask;
+}

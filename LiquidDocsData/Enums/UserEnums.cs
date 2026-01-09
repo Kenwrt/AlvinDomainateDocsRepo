@@ -32,9 +32,6 @@ public class UserEnums
         Broker,
 
         [System.ComponentModel.Description("Lender")]
-        Lender,
-
-        [System.ComponentModel.Description("Borrower")]
-        Borrower
+        Lender
     }
 }

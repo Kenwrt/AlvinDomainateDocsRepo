@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -28,7 +27,6 @@ public partial class QuickBorrowerViewModel : ObservableObject
     private IApplicationStateManager appState;
     private readonly IMongoDatabaseRepo dbApp;
     private readonly ILogger<QuickBorrowerViewModel> logger;
- 
 
     public QuickBorrowerViewModel(IMongoDatabaseRepo dbApp, ILogger<QuickBorrowerViewModel> logger, UserSession userSession, IApplicationStateManager appState)
     {
@@ -38,7 +36,6 @@ public partial class QuickBorrowerViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-              
     }
 
     [RelayCommand]
@@ -49,9 +46,7 @@ public partial class QuickBorrowerViewModel : ObservableObject
         RecordList.Clear();
 
         dbApp.GetRecords<LiquidDocsData.Models.Borrower>().ToList().ForEach(lf => RecordList.Add(lf));
-
     }
-
 
     [RelayCommand]
     private async Task UpsertRecord()
@@ -67,22 +62,18 @@ public partial class QuickBorrowerViewModel : ObservableObject
 
         if (recordListIndex > -1)
         {
-
             RecordList[recordListIndex] = EditingRecord;
-
         }
         else
         {
             RecordList.Add(EditingRecord);
-        }   
+        }
 
         int myBorrowerIndex = MyBorrowerList.FindIndex(x => x.Id == EditingRecord.Id);
 
         if (myBorrowerIndex > -1)
         {
-
             MyBorrowerList[myBorrowerIndex] = EditingRecord;
-
         }
         else
         {
@@ -92,18 +83,14 @@ public partial class QuickBorrowerViewModel : ObservableObject
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.Borrower>(EditingRecord);
     }
 
-
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.Borrower r)
     {
-              
         int myBorrowerIndex = MyBorrowerList.FindIndex(x => x.Id == r.Id);
 
         if (myBorrowerIndex > -1)
         {
-
             MyBorrowerList.RemoveAt(myBorrowerIndex);
-
         }
     }
 
@@ -134,7 +121,5 @@ public partial class QuickBorrowerViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-
-        
     }
 }

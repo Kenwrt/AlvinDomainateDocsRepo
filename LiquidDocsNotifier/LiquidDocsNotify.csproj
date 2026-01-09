@@ -4,17 +4,16 @@
 	<TargetFramework>net9.0</TargetFramework>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<EnablePreviewFeatures>true</EnablePreviewFeatures>
-	  <PreserveCompilationContext>true</PreserveCompilationContext>
-	  <Nullable>enable</Nullable>
-	  <ImplicitUsings>enable</ImplicitUsings>
-	  
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <Nullable>enable</Nullable>
+	  <LangVersion>latest</LangVersion>
+		  
 	  <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 	  <PackageOutputPath>$(SolutionDir)LocalPackages</PackageOutputPath>
 
-	  <PackageId>LiquidDocs.DocumentManager</PackageId>
+	
 	  <Authors>Ken Wright</Authors>
 	  <Company>LiquidDocs LLC</Company>
-
 	  <Version>1.0.$([System.DateTime]::UtcNow.ToString("yyyyMMdd"))</Version>
 
 	  <!-- Explicit, legal assembly versions (4 parts, each <= 65535) -->

@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LiquidDocsData.Enums;
-using LiquidDocsSite.Components.Pages;
 using LiquidDocsSite.Database;
 using LiquidDocsSite.Helpers;
 using LiquidDocsSite.State;
@@ -28,7 +27,6 @@ public partial class QuickGuarantorViewModel : ObservableObject
     private IApplicationStateManager appState;
     private readonly IMongoDatabaseRepo dbApp;
     private readonly ILogger<QuickGuarantorViewModel> logger;
- 
 
     public QuickGuarantorViewModel(IMongoDatabaseRepo dbApp, ILogger<QuickGuarantorViewModel> logger, UserSession userSession, IApplicationStateManager appState)
     {
@@ -38,7 +36,6 @@ public partial class QuickGuarantorViewModel : ObservableObject
         this.appState = appState;
 
         userId = userSession.UserId;
-
     }
 
     [RelayCommand]
@@ -49,7 +46,6 @@ public partial class QuickGuarantorViewModel : ObservableObject
         RecordList.Clear();
 
         dbApp.GetRecords<LiquidDocsData.Models.Guarantor>().ToList().ForEach(lf => RecordList.Add(lf));
-
     }
 
     [RelayCommand]
@@ -66,9 +62,7 @@ public partial class QuickGuarantorViewModel : ObservableObject
 
         if (recordListIndex > -1)
         {
-
             RecordList[recordListIndex] = EditingRecord;
-
         }
         else
         {
@@ -79,9 +73,7 @@ public partial class QuickGuarantorViewModel : ObservableObject
 
         if (myGuarantorIndex > -1)
         {
-
             MyGuarantorList[myGuarantorIndex] = EditingRecord;
-
         }
         else
         {
@@ -89,25 +81,17 @@ public partial class QuickGuarantorViewModel : ObservableObject
         }
 
         await dbApp.UpSertRecordAsync<LiquidDocsData.Models.Guarantor>(EditingRecord);
-
-
-
     }
 
     [RelayCommand]
     private async Task DeleteRecord(LiquidDocsData.Models.Guarantor r)
     {
-
         int myGuarantorIndex = MyGuarantorList.FindIndex(x => x.Id == r.Id);
 
         if (myGuarantorIndex > -1)
         {
-
             MyGuarantorList.RemoveAt(myGuarantorIndex);
-
         }
-                     
-       
     }
 
     [RelayCommand]
@@ -137,6 +121,5 @@ public partial class QuickGuarantorViewModel : ObservableObject
         {
             UserId = Guid.Parse(userId)
         };
-
     }
 }

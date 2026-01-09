@@ -39,7 +39,8 @@
 </style>
 
 
-<MudThemeProvider />
+<MudThemeProvider Theme="(IsDark ? DominateDocsTheme.Dark : DominateDocsTheme.Light)" />
+
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
@@ -51,8 +52,6 @@
         {
             <MudAppBar Elevation="1">
 
-               @*  <MudToolbar> *@
-
                     <!-- Horizontal menu items -->
                     <MudItem Class="menu-items">
 
@@ -60,7 +59,7 @@
 
 
                             <MudLink Href="/" Class="menu-link">
-                                <img src="images/liquiddocslogoImageOnly.png" height="60" width="77">
+                               <img src="images/Dominate Docs Logo_Horizontal-03.png" height="60" width="150"> 
                             </MudLink>
 
 
@@ -81,12 +80,9 @@
                         <MudText Typo="Typo.button">
                             <MudLink Href="/contactus" Class="menu-link">Contact Us</MudLink>
                         </MudText>
+
                     </MudItem>
-              @*   </MudToolbar> *@
-
-
-               
-
+              
                 <MudSpacer />
 
                 <LayoutActionButtons />
@@ -106,7 +102,7 @@
 
 
                             <MudLink Href="/" Class="menu-link">
-                                <img src="images/liquiddocslogoImageOnly.png" height="60" width="77">
+                                <img src="images/Dominate Docs Logo_Horizontal-03.png" height="60" width="150">
                             </MudLink>
 
 
@@ -149,7 +145,8 @@
                     </ActivatorContent>
                     <ChildContent>
                         @* <MudMenuItem Href="Account/Manage">Profile</MudMenuItem> *@
-                        <MudLink Href="Account/Manage" Class="text-black ml-3">Profile</MudLink>
+                        <MudLink Href="Account/Manage" Class="text-black ml-3">Account Settings</MudLink>
+                        <MudLink Href="/UserDefaultProfile" Class="text-black ml-3">Default Profiles</MudLink>
 
                         <div class="nav-item px-3">
                             <form action="Account/Logout" method="post">
@@ -166,11 +163,14 @@
 
         }
 
+        @if (ShowAppSidebar)
+        {
 
-        <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+            <MudDrawer id="nav-drawer" @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
 
-            <MudBlazorNavMenu />
-        </MudDrawer>
+                <MudBlazorNavMenu />
+            </MudDrawer>
+        }
         <MudMainContent>
             <MudContainer MaxWidth="MaxWidth.False" Class="pa-4">
                 @Body
@@ -189,38 +189,40 @@
 
 @code {
 
+    @code {
+        [CascadingParameter] public bool ShowAppSidebar { get; set; } = true;
 
 
+        private bool IsDark = false;
 
 
+        private LiquidDocsSite.Data.ApplicationUser user = default!;
+        private string? username;
+        private string? phoneNumber;
+        private LiquidDocsData.Models.UserProfile userProfile;
+        private bool _drawerOpen = false;
+        private bool isAuthenticated = false;
+        private string userName = string.Empty;
+        private string currentUrl = string.Empty;
 
-
-    private LiquidDocsSite.Data.ApplicationUser user = default!;
-    private string? username;
-    private string? phoneNumber;
-    private LiquidDocsData.Models.UserProfile userProfile;
-    private bool _drawerOpen = false;
-    private bool isAuthenticated = false;
-    private string userName = string.Empty;
-    private string currentUrl = string.Empty;
-
-    private MudTheme AppMudTheme = new MudTheme
-    {
-        PaletteLight = new PaletteLight
+        private MudTheme AppMudTheme = new MudTheme
         {
-            Primary = "#0d6efd",
-            Secondary = "#6c757d"
-        },
-        PaletteDark = new PaletteDark
-        {
-            Primary = "#0d6efd",
-            Secondary = "#6c757d"
-        },
-        LayoutProperties = new LayoutProperties
-        {
-            DefaultBorderRadius = "0.25rem"
-        }
-    };
+            PaletteLight = new PaletteLight
+            {
+                Primary = "#0d6efd",
+                Secondary = "#6c757d"
+            },
+            PaletteDark = new PaletteDark
+            {
+                Primary = "#0d6efd",
+                Secondary = "#6c757d"
+            },
+            LayoutProperties = new LayoutProperties
+            {
+                DefaultBorderRadius = "0.25rem"
+            }
+        };
+    }
 
 
 
@@ -228,41 +230,41 @@
 
 
     protected override async Task OnInitializedAsync()
-    {
-
-
-        var auth = await AuthProvider.GetAuthenticationStateAsync();
-        var user = auth.User;
-
-        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
-        isAuthenticated = auth.User.Identity.IsAuthenticated;
-        userName = auth.User.Identity.Name ?? "";
-
-        if (isAuthenticated)
         {
-            userProfile = await appState.GetUserProfileByUserNameAsync(userName);
+
+
+    var auth = await AuthProvider.GetAuthenticationStateAsync();
+    var user = auth.User;
+
+    currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+    isAuthenticated = auth.User.Identity.IsAuthenticated;
+    userName = auth.User.Identity.Name ?? "";
+
+    if (isAuthenticated)
+    {
+        userProfile = await appState.GetUserProfileByUserNameAsync(userName);
+
+        Session.UserId = userProfile.Id.ToString();
+
+        Session.UserName = userProfile.UserName;
+
+        Session.DocLibId = Guid.Parse("533fb231-20f3-4819-8d83-64ede387bd02");
+
+        var roles = appState.GetRoles();
+
+        Session.UserRole = roles.FirstOrDefault();
+
+
+        if (!appState.ActiveSessions.ContainsKey(userName)) appState.ActiveSessions.TryAdd(userName, userProfile);
 
 
 
-            Session.UserId = userProfile.Id.ToString();
-
-            Session.UserName = userProfile.UserName;
-                       
-            var roles = appState.GetRoles();
-
-            Session.UserRole = roles.FirstOrDefault();
-
-
-            if (!appState.ActiveSessions.ContainsKey(userName)) appState.ActiveSessions.TryAdd(userName, userProfile);
-
-           
-
-        }
-
-
-
-        NavigationManager.LocationChanged += OnLocationChanged;
     }
+
+
+
+    NavigationManager.LocationChanged += OnLocationChanged;
+        }
 
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)

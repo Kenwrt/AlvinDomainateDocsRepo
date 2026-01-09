@@ -15,8 +15,8 @@ public partial class DocumentSetAssignmentViewModel : ObservableObject
     [ObservableProperty]
     private LiquidDocsData.Models.Document? selectedDocument;
 
-    [ObservableProperty]
-    private LiquidDocsData.Models.DocumentSet? selectedDocumentSet;
+    //[ObservableProperty]
+    //private LiquidDocsData.Models.DocumentSet? selectedDocumentSet;
 
     private DocumentSetViewModel dsVm;
     private UserSession userSession;
@@ -28,7 +28,7 @@ public partial class DocumentSetAssignmentViewModel : ObservableObject
         this.dsVm = dsVm;
         this.dbApp = dbApp;
 
-        SelectedDocumentSet = dsVm.SelectedDocumentSet;
+        //SelectedDocumentSet = dsVm.SelectedDocumentSet;
 
         dbApp.GetRecords<LiquidDocsData.Models.Document>().ToList().ForEach(d => Documents.Add(d));
     }

@@ -3,8 +3,6 @@ using LiquidDocsData.Models;
 
 namespace LiquidDocsData.FluentValidation;
 
-
-
 public class EntityOwnerValidator : AbstractValidator<EntityOwner>
 {
     public EntityOwnerValidator()

@@ -5,6 +5,7 @@
 		<TargetFramework>net9.0</TargetFramework>
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<EnablePreviewFeatures>true</EnablePreviewFeatures>
 		<UserSecretsId>aspnet-LiquidDocsSite-a3a3a11b-4df5-4e8e-93bd-5e5fe25b5af8</UserSecretsId>
@@ -117,6 +118,7 @@
     <ProjectReference Include="..\DocumentManager\DocumentManager.csproj" />
     <ProjectReference Include="..\LiquidDocsData\LiquidDocsData.csproj" />
     <ProjectReference Include="..\LiquidDocsNotifier\LiquidDocsNotify.csproj" />
+    <ProjectReference Include="..\StripeBillingManager\StripeBillingManager.csproj" />
   </ItemGroup>
 
   <ItemGroup>
